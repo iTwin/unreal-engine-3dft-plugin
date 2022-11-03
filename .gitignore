@@ -7,7 +7,6 @@ Saved/*
 Plugins/iModel3d/Binaries/*
 Plugins/iModel3d/Build/*
 Plugins/iModel3d/Intermediate/*
-x64
 iModel.xcworkspace
 *_BuiltData.uasset
 *.xcuserdatad
