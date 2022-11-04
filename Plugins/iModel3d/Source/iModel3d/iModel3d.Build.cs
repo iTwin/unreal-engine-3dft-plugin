@@ -43,7 +43,7 @@ public class iModel3d : ModuleRules
         } else if (Target.Platform == UnrealTargetPlatform.Mac)
         {
             string ThirdPartyPath = Path.GetFullPath(Path.Combine(ModuleDirectory, "../../ThirdParty/iModelDecoder/"));
-            string LibraryPath = Path.Combine(ThirdPartyPath, "Mac");
+            string LibraryPath = Path.Combine(ThirdPartyPath, "macos");
 
             PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, "libdecoder.a"));
             PublicIncludePaths.Add(Path.Combine(ThirdPartyPath, "includes"));
