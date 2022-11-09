@@ -4,6 +4,7 @@ Intermediate/*
 iModel.sln
 Content/Maps/Iter/*
 Saved/*
+.vs/*
 Plugins/iModel3d/Binaries/*
 Plugins/iModel3d/Build/*
 Plugins/iModel3d/Intermediate/*
