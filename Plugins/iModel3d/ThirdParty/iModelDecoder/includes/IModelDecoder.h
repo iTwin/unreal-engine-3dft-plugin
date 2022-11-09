@@ -4,9 +4,17 @@
 #include "MeshTile.h"
 #include "StaticString.h"
 
-#include <memory>
+#if defined(_WIN32) || defined(_WIN64)
+#	ifdef IMODELDECODER_EXPORTS
+#		define IMODELDECODER_API __declspec(dllexport)
+#	else
+#		define IMODELDECODER_API __declspec(dllimport)
+#	endif
+#else
+#	define IMODELDECODER_API
+#endif
 
-class IModelDecoder
+class IMODELDECODER_API IModelDecoder
 {
 public:
 	virtual void AddBinaryAssets(const uint8_t* Data, size_t Size, const char* RelativePath) = 0;
@@ -27,5 +35,3 @@ public:
 
 	virtual void Release() = 0;
 };
-
-IModelDecoder* CreateDecoder();

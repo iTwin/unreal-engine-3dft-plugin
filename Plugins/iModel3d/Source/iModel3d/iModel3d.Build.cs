@@ -18,7 +18,7 @@ public class iModel3d : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent" });
 
         PrivateDependencyModuleNames.AddRange(new string[] { "CoreUObject", "Engine", "Slate", "SlateCore", "WebSockets", "Json",
-                                                                 "JsonUtilities", "MeshDescription", "HTTP", "RHI", "RenderCore" });
+                                                                 "JsonUtilities", "MeshDescription", "HTTP", "RHI", "RenderCore", "Projects" });
         if (Target.bBuildEditor)
         {
             PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd" });
@@ -29,21 +29,19 @@ public class iModel3d : ModuleRules
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
             string ThirdPartyPath = Path.GetFullPath(Path.Combine(ModuleDirectory, "../../ThirdParty/iModelDecoder/"));
+            string PlatformDir = (Target.Platform == UnrealTargetPlatform.Win64) ? "x64" : "x86";
+            string LibraryPath = Path.Combine(ThirdPartyPath, PlatformDir);
 
-            string LibraryPath = Path.Combine(ThirdPartyPath, (Target.Platform == UnrealTargetPlatform.Win64) ? "x64" : "x86");
+            // Console.WriteLine("\n\n... LibraryPath -> " + LibraryPath);
 
-            // Console.WriteLine("\n\n... LibrariesPath -> " + LibraryPath);
-            // Console.WriteLine("\n\n... Includes -> " + ThirdPartyPath);
-
-            PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, "decoder.lib"));
             PublicIncludePaths.Add(Path.Combine(ThirdPartyPath, "includes"));
 
-
-            // Definitions.Add(string.Format("WITH_YJ_MAGIC_LIB_BINDING={0}", isLibrarySupported ? 1 : 0));
-        } else if (Target.Platform == UnrealTargetPlatform.Mac)
+            RuntimeDependencies.Add(Path.Combine(LibraryPath, "decoder.dll"));
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Mac)
         {
             string ThirdPartyPath = Path.GetFullPath(Path.Combine(ModuleDirectory, "../../ThirdParty/iModelDecoder/"));
-            string LibraryPath = Path.Combine(ThirdPartyPath, "macos");
+            string LibraryPath = Path.Combine(ThirdPartyPath, "Mac");
 
             PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, "libdecoder.a"));
             PublicIncludePaths.Add(Path.Combine(ThirdPartyPath, "includes"));

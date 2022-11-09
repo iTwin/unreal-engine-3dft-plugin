@@ -2,6 +2,7 @@
 
 #include <array>
 #include <string>
+#include <cstring>
 
 #include <errno.h>
 #include <stdio.h>

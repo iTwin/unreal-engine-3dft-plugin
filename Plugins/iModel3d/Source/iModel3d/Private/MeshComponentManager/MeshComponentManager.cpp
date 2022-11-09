@@ -1,5 +1,6 @@
 #include "MeshComponentManager.h"
 #include "Common/Debug.h"
+#include "CreateIModelDecoder.h"
 
 #include <cmath>
 
@@ -15,7 +16,7 @@ FMeshComponentManager::FMeshComponentManager(AActor* InActor, bool bIsInEditor)
 	ProceduralMeshes = std::make_shared<FProceduralMeshes>(InActor, bIsInEditor);
 	bShowBatchesWhileLoading = false;
 
-	ModelDecoder = std::shared_ptr<IModelDecoder>(CreateDecoder(), [](IModelDecoder* Decoder) { Decoder->Release(); });
+	ModelDecoder = CreateIModelDecoder();
 
 	BatchLoaderRunnable = std::make_unique<FBatchLoaderRunnable>(ModelDecoder);
 	BatchLoaderThread = FRunnableThread::Create(BatchLoaderRunnable.get(), TEXT("Batch Loader Runnable Thread"));
