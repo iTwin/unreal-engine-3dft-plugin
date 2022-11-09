@@ -29,8 +29,7 @@ public class iModel3d : ModuleRules
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
             string ThirdPartyPath = Path.GetFullPath(Path.Combine(ModuleDirectory, "../../ThirdParty/iModelDecoder/"));
-            string PlatformDir = (Target.Platform == UnrealTargetPlatform.Win64) ? "x64" : "x86";
-            string LibraryPath = Path.Combine(ThirdPartyPath, PlatformDir);
+            string LibraryPath = Path.Combine(ThirdPartyPath, "windows", (Target.Platform == UnrealTargetPlatform.Win64) ? "x64" : "x86");
 
             // Console.WriteLine("\n\n... LibraryPath -> " + LibraryPath);
 

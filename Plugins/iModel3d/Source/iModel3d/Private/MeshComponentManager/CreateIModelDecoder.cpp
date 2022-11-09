@@ -10,7 +10,7 @@ typedef IModelDecoder* (__cdecl* TCreateDecoderFn)();
 std::shared_ptr<IModelDecoder> CreateIModelDecoder()
 {
 	const FString BasePluginDir = IPluginManager::Get().FindPlugin("iModel3d")->GetBaseDir();
-	const FString DllPath = FPaths::Combine(*BasePluginDir, TEXT("ThirdParty/iModelDecoder/x64/decoder.dll"));
+	const FString DllPath = FPaths::Combine(*BasePluginDir, TEXT("ThirdParty/iModelDecoder/windows/x64/decoder.dll"));
 
 	auto dll = FPlatformProcess::GetDllHandle(*DllPath);
 	if (!dll)
