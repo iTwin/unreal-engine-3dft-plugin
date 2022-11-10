@@ -23,6 +23,9 @@ AiModel3d::AiModel3d(const FObjectInitializer& ObjectInitializer) : Super(Object
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 
 	GraphicOptions = MakeShared<FGraphicOptions>();
+	
+	OpaqueMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/SolidMaterial.SolidMaterial'")));
+	TranslucentMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/TranslucentMat.TranslucentMat'")));
 }
 
 void AiModel3d::Initialize()
@@ -31,9 +34,6 @@ void AiModel3d::Initialize()
 	{
 		return;
 	}
-
-	OpaqueMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/SolidMaterial.SolidMaterial'")));
-	TranslucentMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/TranslucentMat.TranslucentMat'")));
 
 	TArray<FMatOverride> Overrides;
 	for (const auto& Mat : MaterialOverrides)
