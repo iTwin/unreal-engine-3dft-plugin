@@ -4,7 +4,7 @@
 #include "Interfaces/IPluginManager.h"
 #include "Misc/Paths.h"
 
-#ifdef PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
 typedef IModelDecoder* (__cdecl* TCreateDecoderFn)();
 
 std::shared_ptr<IModelDecoder> CreateIModelDecoder()

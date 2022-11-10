@@ -35,3 +35,6 @@ public:
 
 	virtual void Release() = 0;
 };
+
+extern "C" IModelDecoder* CreateDecoder();
+
