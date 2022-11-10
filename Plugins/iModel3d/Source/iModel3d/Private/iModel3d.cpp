@@ -92,6 +92,13 @@ void AiModel3d::BeginPlay()
 	Initialize();
 }
 
+void AiModel3d::BeginDestroy()
+{
+	Deinitialize();
+
+	Super::BeginDestroy();
+}
+
 void AiModel3d::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Deinitialize();
