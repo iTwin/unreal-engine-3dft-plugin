@@ -36,5 +36,4 @@ public:
 	virtual void Release() = 0;
 };
 
-extern "C" IModelDecoder* CreateDecoder();
-
+extern "C" IMODELDECODER_API IModelDecoder* CreateDecoder();
