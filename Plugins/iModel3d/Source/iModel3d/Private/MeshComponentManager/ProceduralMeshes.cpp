@@ -50,14 +50,15 @@ void FProceduralMeshes::UpdatePool()
 
 		MeshComponent->SetProcMeshSection(0, EmptySection);
 		MeshComponent->SetMeshSectionVisible(0, false);
-
-		MeshComponent->RegisterComponent();
+		MeshComponent->SetMaterial(0, nullptr);
 
 		if (bIsInEditor)
 		{
 			// Mark components as transient in order for them not to be copied into play
 			MeshComponent->SetFlags(MeshComponent->GetFlags() | EObjectFlags::RF_DuplicateTransient | EObjectFlags::RF_Transient);
 		}
+
+		MeshComponent->RegisterComponent();
 
 		Pool.Push(MeshComponent);
 	}

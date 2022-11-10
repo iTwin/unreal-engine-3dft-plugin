@@ -31,7 +31,8 @@ FMeshComponentManager::~FMeshComponentManager()
 
 void FMeshComponentManager::SetMaterials(UMaterialInterface* Opaque, UMaterialInterface* Translucent)
 {
-	Materials = { UMaterialInstanceDynamic::Create(Opaque, Actor), UMaterialInstanceDynamic::Create(Translucent, Actor) };
+	Materials.Opaque.Initialize(Opaque);
+	Materials.Translucent.Initialize(Translucent);
 }
 
 void FMeshComponentManager::SetOptions(FIMOptions InOptions, bool InPrintBatches, FString LocalPath, bool bUseDiskCache)
@@ -49,11 +50,11 @@ void FMeshComponentManager::SetGraphicOptions(const TSharedPtr<FGraphicOptions>&
 {
 	if (Materials.Opaque)
 	{
-		Materials.Opaque->SetScalarParameterValue("DebugRGB", GraphicOptions->Materials.DebugRGB);
+		Materials.Opaque.Get()->SetScalarParameterValue("DebugRGB", GraphicOptions->Materials.DebugRGB);
 	}
 	if (Materials.Translucent)
 	{
-		Materials.Translucent->SetScalarParameterValue("DebugRGB", GraphicOptions->Materials.DebugRGB);
+		Materials.Translucent.Get()->SetScalarParameterValue("DebugRGB", GraphicOptions->Materials.DebugRGB);
 	}
 	BatchLoaderRunnable->SetGraphicOptions(GraphicOptions);
 }
@@ -154,7 +155,7 @@ void FMeshComponentManager::UpdateBatches(float DeltaTime, FVector CamLocation)
 				MeshComponent->SetProcMeshSection(0, std::move(ProcMesh));
 				MeshComponent->SetMeshSectionVisible(0, false); // bShowBatchesWhileLoading);
 
-				MeshComponent->SetMaterial(0, Material.bTranslucent ? Materials.Translucent : Materials.Opaque);
+				MeshComponent->SetMaterial(0, Material.bTranslucent ? Materials.Translucent.Get() : Materials.Opaque.Get());
 
 				LoadingMeshes.Push(std::move(BatchComponent));
 			}
@@ -241,11 +242,11 @@ void FMeshComponentManager::SetPlaybackPosition(int32 Time)
 	{
 		Animation.ClearTexturesDirty();
 
-		Materials.Translucent->SetTextureParameterValue("VisibilityTex", Animation.VisibilityTexture->Get());
-		Materials.Opaque->SetTextureParameterValue("VisibilityTex", Animation.VisibilityTexture->Get());
+		Materials.Translucent.Get()->SetTextureParameterValue("VisibilityTex", Animation.VisibilityTexture->Get());
+		Materials.Opaque.Get()->SetTextureParameterValue("VisibilityTex", Animation.VisibilityTexture->Get());
 
-		Materials.Translucent->SetTextureParameterValue("ColorTex", Animation.ColorTexture->Get());
-		Materials.Opaque->SetTextureParameterValue("ColorTex", Animation.ColorTexture->Get());
+		Materials.Translucent.Get()->SetTextureParameterValue("ColorTex", Animation.ColorTexture->Get());
+		Materials.Opaque.Get()->SetTextureParameterValue("ColorTex", Animation.ColorTexture->Get());
 	}
 }
 

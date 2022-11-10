@@ -41,7 +41,6 @@ public:
 	virtual int32 GetNumMaterials() const override;
 	virtual void PostLoad() override;
 
-
 private:
 	virtual FBoxSphereBounds CalcBounds(const FTransform& LocalToWorld) const override;
 

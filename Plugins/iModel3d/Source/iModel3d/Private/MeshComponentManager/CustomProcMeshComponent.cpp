@@ -449,6 +449,7 @@ void UCustomProcMeshComponent::PostLoad()
 void UCustomProcMeshComponent::ClearAllMeshSections()
 {
 	ProcMeshSections.Empty();
+	OverrideMaterials.Empty();
 	UpdateLocalBounds();
 	MarkRenderStateDirty();
 }

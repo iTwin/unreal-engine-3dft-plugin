@@ -4,7 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "CustomProcMeshComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
+#include "Common/DynamicMaterial.h"
 #include "Common/DynamicTexture.h"
 
 #include "BatchLoaderRunnable.h"
@@ -59,8 +59,8 @@ private:
 	std::shared_ptr<FProceduralMeshes> ProceduralMeshes;
 	struct
 	{
-		UMaterialInstanceDynamic* Opaque;
-		UMaterialInstanceDynamic* Translucent;
+		FDynamicMaterial Opaque;
+		FDynamicMaterial Translucent;
 	} Materials;
 
 	FIMOptions Options;
