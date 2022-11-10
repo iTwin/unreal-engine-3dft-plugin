@@ -5,7 +5,6 @@
 #include "Misc/Paths.h"
 
 #if PLATFORM_WINDOWS
-typedef IModelDecoder* (__cdecl* TCreateDecoderFn)();
 
 std::shared_ptr<IModelDecoder> CreateIModelDecoder()
 {
@@ -18,23 +17,13 @@ std::shared_ptr<IModelDecoder> CreateIModelDecoder()
 		return nullptr;
 	}
 
-	auto CreateDecoderFn = reinterpret_cast<TCreateDecoderFn>(FPlatformProcess::GetDllExport(dll, TEXT("CreateDecoder")));
-	if (!CreateDecoderFn)
-	{
-		FPlatformProcess::FreeDllHandle(dll);
-		return nullptr;
-	}
-
-	return std::shared_ptr<IModelDecoder>(CreateDecoderFn(), [dll](IModelDecoder* Decoder) {
+	return std::shared_ptr<IModelDecoder>(CreateDecoder(), [dll](IModelDecoder* Decoder) {
 		Decoder->Release();
 		FPlatformProcess::FreeDllHandle(dll);
 	});
 }
 
 #else
-
-// Function exported in the static library
-IModelDecoder* CreateDecoder();
 
 std::shared_ptr<IModelDecoder> CreateIModelDecoder()
 {
