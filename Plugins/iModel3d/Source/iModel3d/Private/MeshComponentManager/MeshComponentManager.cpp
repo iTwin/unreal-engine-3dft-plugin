@@ -48,14 +48,6 @@ void FMeshComponentManager::SetOptions(FIMOptions InOptions, bool InPrintBatches
 
 void FMeshComponentManager::SetGraphicOptions(const TSharedPtr<FGraphicOptions>& GraphicOptions)
 {
-	if (Materials.Opaque)
-	{
-		Materials.Opaque.Get()->SetScalarParameterValue("DebugRGB", GraphicOptions->Materials.DebugRGB);
-	}
-	if (Materials.Translucent)
-	{
-		Materials.Translucent.Get()->SetScalarParameterValue("DebugRGB", GraphicOptions->Materials.DebugRGB);
-	}
 	BatchLoaderRunnable->SetGraphicOptions(GraphicOptions);
 }
 

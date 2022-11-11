@@ -7,6 +7,9 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/GameMode.h"
 
+#include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
+
 #if WITH_EDITOR
 #include "Editor/UnrealEd/Public/Editor.h"
 #include "Editor/UnrealEd/Public/EditorViewportClient.h"
@@ -61,6 +64,15 @@ void AiModel3d::Initialize()
 	}
 
 	MeshComponentManager->SetGraphicOptions(GraphicOptions);
+
+
+	auto ParameterCollection = Cast<UMaterialParameterCollection>(StaticLoadObject(UMaterialParameterCollection::StaticClass(), nullptr, TEXT("MaterialParameterCollection'/iModel3d/Materials/iModelMaterialParameterCollection.iModelMaterialParameterCollection'")));
+	if (ParameterCollection)
+	{
+		auto Collection = GetWorld()->GetParameterCollectionInstance(ParameterCollection);
+		Collection->SetScalarParameterValue("DebugRGB", GraphicOptions->Materials.DebugRGB ? 1 : 0);
+	}
+
 	bDirtyOptions = false;
 
 #if WITH_EDITOR
