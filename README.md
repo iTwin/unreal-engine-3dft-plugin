@@ -1,5 +1,13 @@
 # Unreal Engine 3DFT Plugin
 
+## Table of contents
+
+1. [Pre-requisites](#pre-requisites)
+2. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
+3. [Technology overview](#technology-overview)
+4. [Plugin](#plugin)
+5. [Tutorials](#tutorials)
+
 ## Pre-requisites
 
 ### Mac
@@ -26,7 +34,7 @@ Please, follow the url links to get detailed instructions on how to install the 
 
 3. Open the .uproject file at the root of this repository. Unreal Engine should offer you to build the plugin from source and proceed to load the editor.
 
-4. If Unreal Engine shows errors when loading the .uproject, [compile it manually](#compile-project-manually-and-debug-it).
+4. If Unreal Engine shows errors when loading the .uproject, [compile it manually](#compile-the-project-manually-and-debug-it).
 
 </br>
 
@@ -56,3 +64,33 @@ You can generate the XCode project files from a terminal using a script provided
 3. Use the **Debug** command to run and debug the project. It will automatically run the Unreal Editor with your project loaded.
 
 4. Find more information about compiling game projects [here](https://docs.unrealengine.com/5.0/en-US/compiling-game-projects-in-unreal-engine-using-cplusplus/).
+
+<br/>
+
+## Technology Overview
+
+Engineers are sitting on some incredible models that are too complicated to render in real-time using traditional methods.
+
+3DFT (**3D** **F**ast **T**ransmission) is a new rendering codec that rapidly optimizes/compresses large 3D models for high Unreal Engine framerates, without data loss.
+
+Aimed to achieve the ”4 F’s” (fast encoding, fast transmission, fast decoding, fast rendering) 3DFT defines encoding and decoding methods, a persistence format and a rendering architecture.
+
+3DFT is a fundamental part of [The Bentley iTwin platform](https://www.bentley.com/software/itwin-platform/), a collection of APIs and services designed to help you build digital twin applications and bring them to market quickly. It provides the foundation for building SaaS solutions to design, build, and operate infrastructure assets. Accelerate application development by letting the iTwin platform handle data integration, visualization, change tracking, security, and other complex challenges. Whether you are building SaaS solutions for your clients advancing their digital twin initiatives, or implementing bespoke solutions in your organization, this is the platform for you.
+
+3DFT streams the 3d models stored in the iTwin platform to Unreal Engine directly, without the need to export/import them. The data streaming optimizes the transmission of data so only a fraction of the size of the model is transmitted, instead of exporting/importing the whole model.
+
+![dani](docs/3dft_dataflow_overview.png)
+
+<br/>
+<br/>
+
+If you want to learn more, click of the image to watch the session about 3DFT that we did at the Unreal Fest 2022.
+
+<br/>
+
+[![3DFT at Unreal Fest](https://img.youtube.com/vi/Iag2lJj82m4/0.jpg)](https://www.youtube.com/watch?v=Iag2lJj82m4)
+
+## Plugin
+
+
+## Tutorials
