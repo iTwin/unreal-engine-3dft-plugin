@@ -46,18 +46,17 @@ void AiModel3d::Initialize()
 	const auto& Mat = DefaultMaterial;
 	FMatOverride DefaultOverride = { Mat.Color.DWColor(), Mat.Enabled, Mat.Specular, Mat.Roughness, Mat.Metalic, Mat.OutColor.DWColor() };
 
-	GraphicOptions->Materials = {
-		UseBatchIdForColor, UseTileIdForColor, UsePartIdForColor, UseElementIdForColor, ExagerateColor, Overrides, OverrideMaterials, HideTranslucentMaterials, DebugRGB, DefaultOverride
-	};
+	GraphicOptions->Materials = { Overrides, OverrideMaterials, HideTranslucentMaterials, DebugRGB, DefaultOverride };
 
 	MeshComponentManager = MakeShared<FMeshComponentManager>(this, IsInEditor());
 
 	MeshComponentManager->SetMaterials(OpaqueMaterial, TranslucentMaterial);
 
 	MeshComponentManager->SetOptions(
-		{ ObjectLoadingSpeed, bShowObjectsWhileLoading, RequestsInParallel, MaxTrianglesPerBatch, ShadowDistanceCulling, { uint8_t(NearRangeGeometryQuality), uint8_t(FarRangeGeometryQuality)}, IgnoreTranslucency },
-		PrintBatches, LocalPath, bUseDiskCache);
+		{ RequestsInParallel, MaxTrianglesPerBatch, { uint8_t(NearRangeGeometryQuality), uint8_t(FarRangeGeometryQuality)}, IgnoreTranslucency },
+		{ ObjectLoadingSpeed, ShadowDistanceCulling, bUseDiskCache });
 
+	MeshComponentManager->SetUrl(LocalPath);
 	for (const auto& Element : ElementInfos)
 	{
 		GraphicOptions->SetElement(Element);
@@ -164,11 +163,6 @@ void AiModel3d::Tick(float DeltaTime)
 	}
 
 	MeshComponentManager->Update(DeltaTime, CamLocation, CamForward);
-
-	if (PrintBatches)
-	{
-		GEngine->AddOnScreenDebugMessage(0, 5.0f, FColor::Yellow, FString::Printf(TEXT("Drawn Batches: %i"), MeshComponentManager->GetNumDrawcalls()));
-	}
 }
 
 bool AiModel3d::IsInEditor() const

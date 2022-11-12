@@ -55,9 +55,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "iModel|Model")
 		FString LocalPath = "";
 
-	UPROPERTY(EditAnywhere, Category = "iModel|Model")
-		bool bUseDiskCache = true;
-
 	// Implement this in the future by adding tile destruction/re-creation (not just hidding).
 	// UPROPERTY(EditAnywhere, Category = "iModel|Model")
 	// bool bShowInEditor = true;
@@ -72,10 +69,10 @@ private:
 		float ObjectLoadingSpeed = 1.f;
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
-		bool bShowObjectsWhileLoading = true;
+		uint32 RequestsInParallel = 4;
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
-		uint32 RequestsInParallel = 4;
+		bool bUseDiskCache = true;
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Optimization")
 		uint32 MaxTrianglesPerBatch = 25000;
@@ -87,28 +84,7 @@ private:
 		EGeometryQuality FarRangeGeometryQuality = EGeometryQuality::GQ_High;
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Optimization")
-		float DecimationFaceCulling = 2.0f;
-
-	UPROPERTY(EditAnywhere, Category = "iModel|Optimization")
 		float ShadowDistanceCulling = 15000.f;
-
-	UPROPERTY(EditAnywhere, Category = "iModel|Debug")
-		bool UseBatchIdForColor = false;
-
-	UPROPERTY(EditAnywhere, Category = "iModel|Debug")
-		bool UseTileIdForColor = false;
-
-	UPROPERTY(EditAnywhere, Category = "iModel|Debug")
-		bool UsePartIdForColor = false;
-
-	UPROPERTY(EditAnywhere, Category = "iModel|Debug")
-		bool UseElementIdForColor = false;
-
-	UPROPERTY(EditAnywhere, Category = "iModel|Debug")
-		bool ExagerateColor = false;
-
-	UPROPERTY(EditAnywhere, Category = "iModel|Debug")
-		bool PrintBatches = false;
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Elements")
 		TArray<FElementInfo> ElementInfos;

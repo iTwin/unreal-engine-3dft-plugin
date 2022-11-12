@@ -11,13 +11,10 @@ struct FGeometryQuality
 struct FIMOptions
 {
 	// Loading
-	float ObjectLoadingSpeed;
-	bool bShowObjectsWhileLoading;
 	uint32_t RequestsInParallel;
 
 	// Optimization
 	uint32_t MaxTrianglesPerBatch;
-	float ShadowDistanceCulling;
 
 	// Quality
 	FGeometryQuality GeometryQuality;

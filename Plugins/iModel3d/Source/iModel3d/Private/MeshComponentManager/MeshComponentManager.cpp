@@ -14,7 +14,6 @@ FMeshComponentManager::FMeshComponentManager(AActor* InActor, bool bIsInEditor)
 	RedirectStdOutput();
 
 	ProceduralMeshes = std::make_shared<FProceduralMeshes>(InActor, bIsInEditor);
-	bShowBatchesWhileLoading = false;
 
 	ModelDecoder = CreateIModelDecoder();
 
@@ -35,15 +34,19 @@ void FMeshComponentManager::SetMaterials(UMaterialInterface* Opaque, UMaterialIn
 	Materials.Translucent.Initialize(Translucent);
 }
 
-void FMeshComponentManager::SetOptions(FIMOptions InOptions, bool InPrintBatches, FString LocalPath, bool bUseDiskCache)
+void FMeshComponentManager::SetOptions(FIMOptions InOptions, FPluginOptions InPluginOptions)
 {
 	Options = InOptions;
-	PrintBatches = InPrintBatches;
+	PluginOptions = InPluginOptions;
 	ModelDecoder->SetOptions(Options);
-	BatchLoaderRunnable->SetTriangleBudget(3 * LoadingVerticesPerFrame * (Options.ObjectLoadingSpeed ? Options.ObjectLoadingSpeed : 1));
+	BatchLoaderRunnable->SetTriangleBudget(3 * LoadingVerticesPerFrame * (PluginOptions.ObjectLoadingSpeed ? PluginOptions.ObjectLoadingSpeed : 1));
 
-	DataRequests->SetBaseUrl(LocalPath);
-	DataRequests->SetUseCache(bUseDiskCache);
+	DataRequests->SetUseCache(PluginOptions.bUseDiskCache);
+}
+
+void FMeshComponentManager::SetUrl(FString Url)
+{
+	DataRequests->SetBaseUrl(Url);
 }
 
 void FMeshComponentManager::SetGraphicOptions(const TSharedPtr<FGraphicOptions>& GraphicOptions)
@@ -111,12 +114,6 @@ void FMeshComponentManager::UpdateBatches(float DeltaTime, FVector CamLocation)
 	constexpr auto FrameTimeTarget = 1.0 / FPSWhenLoadingMeshes;
 	float CreationCount = DeltaTime > 0 ? FrameTimeTarget / DeltaTime : 1.0;
 
-	if (PrintBatches)
-	{
-		GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Orange,
-			FString::Printf(TEXT("Ready Batches: %d"), BatchLoaderRunnable->NumReadyMeshes()));
-	}
-
 	while (CreationCount >= 0 && (BatchLoaderRunnable->NumReadyMeshes() > 0 || CurrentRenderableBatch) && ProceduralMeshes->PoolNum() > 0)
 	{
 		if (!CurrentRenderableBatch)
@@ -131,7 +128,7 @@ void FMeshComponentManager::UpdateBatches(float DeltaTime, FVector CamLocation)
 			if (ProcMesh->Vertices.Num() && ProcMesh->Indices.Num())
 			{
 				auto TriangleCoeficient = (ProcMesh->Indices.Num() / 3) / float(LoadingVerticesPerFrame);
-				auto Speed = Options.ObjectLoadingSpeed > 0 ? Options.ObjectLoadingSpeed : 1.0;
+				auto Speed = PluginOptions.ObjectLoadingSpeed > 0 ? PluginOptions.ObjectLoadingSpeed : 1.0;
 				CreationCount -= TriangleCoeficient / Speed;
 
 				const auto& Material = CurrentRenderableBatch->Material;
@@ -145,7 +142,7 @@ void FMeshComponentManager::UpdateBatches(float DeltaTime, FVector CamLocation)
 				UpdateComponentShadows(CamLocation, BatchComponent);
 
 				MeshComponent->SetProcMeshSection(0, std::move(ProcMesh));
-				MeshComponent->SetMeshSectionVisible(0, false); // bShowBatchesWhileLoading);
+				MeshComponent->SetMeshSectionVisible(0, false);
 
 				MeshComponent->SetMaterial(0, Material.bTranslucent ? Materials.Translucent.Get() : Materials.Opaque.Get());
 
@@ -201,13 +198,13 @@ void FMeshComponentManager::UpdateComponentShadows(FVector CamLocation, FBatchPM
 {
 	CamLocation.Z = 0;
 	auto Distance = FVector::Distance(CamLocation, Component.Position.Center) - Component.Position.Radius;
-	if (!Component.bShadowsOn && Distance < Options.ShadowDistanceCulling)
+	if (!Component.bShadowsOn && Distance < PluginOptions.ShadowDistanceCulling)
 	{
 		Component.bShadowsOn = true;
 		Component.MeshComponent->bCastDynamicShadow = true;
 		Component.MeshComponent->SetCastShadow(true);
 	}
-	else if (Component.bShadowsOn && Distance > Options.ShadowDistanceCulling * 1.25)
+	else if (Component.bShadowsOn && Distance > PluginOptions.ShadowDistanceCulling * 1.25)
 	{
 		Component.bShadowsOn = false;
 		Component.MeshComponent->bCastDynamicShadow = false;

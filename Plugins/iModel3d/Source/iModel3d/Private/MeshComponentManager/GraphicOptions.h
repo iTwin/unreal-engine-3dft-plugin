@@ -16,13 +16,6 @@ struct FMatOverride
 
 struct FMaterialOptions
 {
-	// Debug
-	bool UseBatchIdForColor;
-	bool UseTileIdForColor;
-	bool UsePartIdForColor;
-	bool UseElementIdForColor;
-	bool ExagerateColor;
-
 	TArray<FMatOverride> Overrides;
 
 	bool OverrideMaterials = true;

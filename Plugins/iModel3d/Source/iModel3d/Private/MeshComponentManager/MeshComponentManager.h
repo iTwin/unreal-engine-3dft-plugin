@@ -13,6 +13,13 @@
 #include "GraphicOptions.h"
 #include "Animation/AnimationManager.h"
 
+struct FPluginOptions
+{
+	float ObjectLoadingSpeed;
+	float ShadowDistanceCulling;
+	bool bUseDiskCache;
+};
+
 class FMeshComponentManager
 {
 public:
@@ -23,7 +30,9 @@ public:
 
 	void SetMaterials(UMaterialInterface* Opaque, UMaterialInterface* Translucent);
 
-	void SetOptions(FIMOptions InOptions, bool PrintBatches, FString LocalPath, bool bUseDiskCache);
+	void SetOptions(FIMOptions InOptions, FPluginOptions InPluginOptions);
+
+	void SetUrl(FString Url);
 
 	void SetGraphicOptions(const TSharedPtr<FGraphicOptions>& GraphicOptions);
 
@@ -54,7 +63,6 @@ private:
 		int32 BatchId;
 	};
 
-	bool bShowBatchesWhileLoading = true;
 	AActor* Actor;
 	std::shared_ptr<FProceduralMeshes> ProceduralMeshes;
 	struct
@@ -64,7 +72,7 @@ private:
 	} Materials;
 
 	FIMOptions Options;
-	bool PrintBatches;
+	FPluginOptions PluginOptions;
 	std::shared_ptr<IModelDecoder> ModelDecoder;
 
 	TArray<FBatchPMComponent> VisibleMeshes;
