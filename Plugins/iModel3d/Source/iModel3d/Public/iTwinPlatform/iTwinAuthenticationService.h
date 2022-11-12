@@ -27,7 +27,7 @@ struct FAuthentication
 	float AuthPollInterval = 3.f;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAuthenticationChange, FAuthentication, Authentication, EAuthenticationStatus, State);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAuthenticationChange, FString, AuthToken, EAuthenticationStatus, State);
 
 UCLASS(BlueprintType)
 class IMODEL3D_API UiTwinAuthenticationService : public UObject

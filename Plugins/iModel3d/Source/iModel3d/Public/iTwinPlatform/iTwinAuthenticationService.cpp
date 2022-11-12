@@ -15,15 +15,13 @@
 
 #include "Common/APIService.h"
 
-// Authentication end points and credentials
-struct FAuthenticationCredentials {
+struct FAuthenticationCredentials
+{
 	static constexpr auto Hostname = TEXT("ims.bentley.com");
 	static constexpr auto DeviceAuthorizationEndpoint = TEXT("/as/device_authz.oauth2");
 	static constexpr auto TokenEndpoint = TEXT("/connect/token");
-	static constexpr auto ClientId = TEXT("itwinxr-hololens-app");
-	static constexpr auto Scope = TEXT("email openid profile organization forms:modify forms:read imodelhub issues:modify issues:read itwin-xr itwinjs projects:modify projects:read validation:modify validation:read");
-	//static constexpr auto ClientId = TEXT("unreal-xr");
-	//static constexpr auto Scope = TEXT("email openid profile organization imodelhub itwin-xr itwinjs projects:modify projects:read validation:modify validation:read");
+	static constexpr auto ClientId = TEXT("sample-client-unreal");
+	static constexpr auto Scope = TEXT("email openid profile organization imodelhub imodels:read itwinjs itwins:modify itwins:read mesh-export:modify mesh-export:read projects:modify projects:read validation:modify validation:read");
 };
 
 void UiTwinAuthenticationService::InitiateAuthentication()
@@ -47,14 +45,14 @@ void UiTwinAuthenticationService::CancelAllRequests()
 		TickerHandle.Reset();
 	}
 
-	AuthenticationChange.Broadcast({}, EAuthenticationStatus::Uninitialized);
+	AuthenticationChange.Broadcast("", EAuthenticationStatus::Uninitialized);
 }
 
 void UiTwinAuthenticationService::AuthenticationError(const FString& ErrorMessage)
 {
 	UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
 
-	AuthenticationChange.Broadcast({}, EAuthenticationStatus::AuthenticationError);
+	AuthenticationChange.Broadcast("", EAuthenticationStatus::AuthenticationError);
 }
 
 void UiTwinAuthenticationService::HandleOauthResponse(TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
@@ -113,7 +111,7 @@ void UiTwinAuthenticationService::HandleOauthResponse(TSharedPtr<FJsonObject> Re
 
 void UiTwinAuthenticationService::WaitAndRequestOauthToken(FAuthentication Authentication)
 {
-	AuthenticationChange.Broadcast(Authentication, EAuthenticationStatus::RequestedToken);
+	AuthenticationChange.Broadcast("", EAuthenticationStatus::RequestedToken);
 
 	TickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
 		[this, Authentication](float Delta) -> bool
@@ -127,8 +125,7 @@ void UiTwinAuthenticationService::WaitAndRequestOauthToken(FAuthentication Authe
 					HandleTokenResponse(Response, ErrorMessage, Authentication);
 				}, FAuthenticationCredentials::Hostname);
 			// Delete and stop the ticker (reset delegate and 'return false')
-			// We have a valid http request now, and its handler may initiate a new timer, but at the monent we
-			// should remove the current timer
+			// We have a valid http request now, and its handler may initiate a new timer, but at the monent we should remove the current timer
 			TickerHandle.Reset();
 			return false;
 		}), Authentication.AuthPollInterval);
@@ -168,5 +165,5 @@ void UiTwinAuthenticationService::HandleTokenResponse(TSharedPtr<FJsonObject> Re
 
 	UE_LOG(LogTemp, Warning, TEXT("Authenticated"));
 
-	AuthenticationChange.Broadcast(Authentication, EAuthenticationStatus::Authenticated);
+	AuthenticationChange.Broadcast(Authentication.AuthToken, EAuthenticationStatus::Authenticated);
 }
