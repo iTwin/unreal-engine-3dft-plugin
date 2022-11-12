@@ -6,6 +6,7 @@
 2. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
 3. [Technology overview](#technology-overview)
 4. [Plugin](#plugin)
+5. [iTwin Platform](#itwin-platform)
 
 ## Pre-requisites
 
@@ -89,6 +90,8 @@ If you want to learn more, click of the image to watch the session about 3DFT th
 
 [![3DFT at Unreal Fest](https://img.youtube.com/vi/Iag2lJj82m4/0.jpg)](https://www.youtube.com/watch?v=Iag2lJj82m4)
 
+<br/>
+
 ## Plugin
 
 ### Render Materials
@@ -116,3 +119,56 @@ Several properties to improve and optimize several aspects of the plugin.
 We can beautify the iModel by modifying the original colors and individual elements.
 
 ![Options_3](docs/plugin_options_overrides.png)
+
+<br/>
+
+## iTwin Platform
+
+If you want to create an iModel for the first time and visualize it in your plugin, follow these steps:
+
+1. Go to the [iTwin Platform developer portal](https://developer.bentley.com/) and create an account.
+
+2. Go to [my models](https://developer.bentley.com/my-imodels/) and create a new iModel.
+
+3. There are several sample iModels that you can use to start playing with the platform. Just create a new iModel, select "Bentley Sample" and choose one of the sample projects.
+
+4. Visualize your model in the platform to make sure that your model has been created correctly.
+
+5. Check the Url of your project to get the parameters **iModelId** and **ChangeSetId**.
+For example, you will see a url with this structure:
+
+    https://connect-imodelweb.bentley.com/imodeljs/?projectId=00000000-1111-2222-3333-44444444&iModelId=55555555-6666-7777-8888-99999999&ChangeSetId=abcdefghijklmnopqrstuvwyz012345678
+    
+    In this case, iModelId is *55555555-6666-7777-8888-99999999* and ChangeSetId is *abcdefghijklmnopqrstuvwyz012345678*.
+
+6. We're going to use the [Mesh Export API](https://developer.bentley.com/apis/mesh-export/) service to convert the iModel to 3DFT.
+
+    1. Go to the [Start Export](https://developer.bentley.com/apis/mesh-export/) page and click on the **Try it out** button.
+
+    2. Click on the dropdown **No auth** and select authorizationCode.
+
+    3. In the **Body** edit box, modify the values of the following parameters:
+        - "iModelId": substitute the identifier with the **iModelId** value from the Url that you have previously copied.
+        - "changesetId": substitute the identifier with the **ChangeSetId** value from the Url that you have previously copied.
+        - "exportType": substitute GLTF for **3DFT**.
+    
+    4. Press the **Execute** button.
+
+    5. This will start the export process and generate an **HTTP response** with the **id** of the export. Copy that value.
+    
+    ![Http response](docs/mesh_export_api_http_response.png)
+
+    6. You can check the state of the export using the [Get Export Service](https://developer.bentley.com/apis/mesh-export/operations/get-export/) (Try it out > No auth > configure **id** > Execute).
+
+<br/>
+
+7. Use the export **id** on any of the samples included in this repo.
+
+
+
+
+
+
+
+
+
