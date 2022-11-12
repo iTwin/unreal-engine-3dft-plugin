@@ -6,7 +6,6 @@
 2. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
 3. [Technology overview](#technology-overview)
 4. [Plugin](#plugin)
-5. [Tutorials](#tutorials)
 
 ## Pre-requisites
 
@@ -79,7 +78,7 @@ Aimed to achieve the ”4 F’s” (fast encoding, fast transmission, fast decod
 
 3DFT streams the 3d models stored in the iTwin platform to Unreal Engine directly, without the need to export/import them. The data streaming optimizes the transmission of data so only a fraction of the size of the model is transmitted, instead of exporting/importing the whole model.
 
-![dani](docs/3dft_dataflow_overview.png)
+![3DFT data flow](docs/3dft_dataflow_overview.png)
 
 <br/>
 <br/>
@@ -92,5 +91,28 @@ If you want to learn more, click of the image to watch the session about 3DFT th
 
 ## Plugin
 
+### Render Materials
 
-## Tutorials
+Define the materials that will be used to render the iModel.
+
+There are 2 materials provided by default:
+
+![Options_1](docs/plugin_options_render_materials.png)
+
+We can create and use our own materials to expand the capabilities of the renderer models.
+
+For example, we have created 2 materials that allows the user to select and high-light individual elements:
+
+![Options_1_b](docs/plugin_options_render_materials_2.png)
+
+### Optimization
+
+Several properties to improve and optimize several aspects of the plugin.
+
+![Options_2](docs/plugin_options_optimization.png)
+
+### Elements and Material Overrides
+
+We can beautify the iModel by modifying the original colors and individual elements.
+
+![Options_3](docs/plugin_options_overrides.png)
