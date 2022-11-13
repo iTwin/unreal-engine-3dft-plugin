@@ -31,13 +31,8 @@ AiModel3d::AiModel3d(const FObjectInitializer& ObjectInitializer) : Super(Object
 	TranslucentMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/TranslucentMat.TranslucentMat'")));
 }
 
-void AiModel3d::Initialize()
+void AiModel3d::Initialize(FString Url)
 {
-	if (bInitialized)
-	{
-		return;
-	}
-
 	TArray<FMatOverride> Overrides;
 	for (const auto& Mat : MaterialOverrides)
 	{
@@ -56,7 +51,7 @@ void AiModel3d::Initialize()
 		{ RequestsInParallel, MaxTrianglesPerBatch, { uint8_t(NearRangeGeometryQuality), uint8_t(FarRangeGeometryQuality)}, IgnoreTranslucency },
 		{ ObjectLoadingSpeed, ShadowDistanceCulling, bUseDiskCache });
 
-	MeshComponentManager->SetUrl(LocalPath);
+	MeshComponentManager->SetUrl(Url);
 	for (const auto& Element : ElementInfos)
 	{
 		GraphicOptions->SetElement(Element);
@@ -96,13 +91,6 @@ void AiModel3d::Deinitialize()
 	bInitialized = false;
 }
 
-void AiModel3d::BeginPlay()
-{
-	Super::BeginPlay();
-
-	Initialize();
-}
-
 void AiModel3d::BeginDestroy()
 {
 	Deinitialize();
@@ -110,16 +98,14 @@ void AiModel3d::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void AiModel3d::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Deinitialize();
-
-	Super::EndPlay(EndPlayReason);
-}
-
 void AiModel3d::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!bInitialized)
+	{
+		return;
+	}
 
 	FVector CamLocation;
 	FVector CamForward;
@@ -127,19 +113,6 @@ void AiModel3d::Tick(float DeltaTime)
 	if (IsInEditor())
 	{
 #if WITH_EDITOR
-		/*
-		if (!bShowInEditor)
-		{
-			if (MeshComponentManager)
-			{
-				MeshComponentManager->HideVisible();
-			}
-			return;
-		}
-		*/
-
-		Initialize();
-
 		auto ViewportClient = reinterpret_cast<FEditorViewportClient*>(GEditor->GetActiveViewport()->GetClient());
 		CamLocation = ViewportClient->GetViewLocation() - GetActorLocation();
 		CamForward = ViewportClient->GetViewRotation().Vector();
@@ -210,9 +183,24 @@ FString AiModel3d::GetElementId(uint32_t ElementIndex)
 void AiModel3d::LoadModel(FString Url)
 {
 	Deinitialize();
-	LocalPath = Url;
+	Initialize(Url);
+}
 
-	Initialize();
+void AiModel3d::Reset()
+{
+	Deinitialize();
+}
+
+void AiModel3d::RefreshUrl(FString Url)
+{
+	if (!bInitialized)
+	{
+		UE_LOG(LogTemp, Error, TEXT("RefreshUrl: iModel not initialized yet!"));
+	}
+	else
+	{
+		MeshComponentManager->SetUrl(Url);
+	}
 }
 
 /* To be implemented in the future

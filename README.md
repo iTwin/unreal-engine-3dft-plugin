@@ -154,15 +154,19 @@ For example, you will see a url with this structure:
     
     4. Press the **Execute** button.
 
-    5. This will start the export process and generate an **HTTP response** with the **id** of the export. Copy that value.
+    5. This will start the export process and generate an **HTTP response** with the **id** of the export.
     
-    ![Http response](docs/mesh_export_api_http_response.png)
+        ![Http response](docs/mesh_export_api_http_response.png)
 
-    6. You can check the state of the export using the [Get Export Service](https://developer.bentley.com/apis/mesh-export/operations/get-export/) (Try it out > No auth > configure **id** > Execute).
+    6. Check the state of the export using the [Get Export Service](https://developer.bentley.com/apis/mesh-export/operations/get-export/) (Try it out > No auth > configure **id** > Execute).
+
+    7. When the export has been completed, you will receive the Url of the 3DFT:
+
+        ![Http response](docs/mesh_export_api_http_response_href.png)
 
 <br/>
 
-7. Use the export **id** on any of the samples included in this repo.
+7. Use the **href** of the 3DFT on the sample included in this UE project.
 
 
 

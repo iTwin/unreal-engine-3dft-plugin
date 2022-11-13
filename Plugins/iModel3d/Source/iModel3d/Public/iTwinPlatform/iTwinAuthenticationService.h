@@ -9,7 +9,6 @@ class FJsonObject;
 UENUM(BlueprintType)
 enum class EAuthenticationStatus : uint8
 {
-	Uninitialized,
 	AuthenticationError,
 	RequestedToken,
 	Authenticated,
@@ -41,9 +40,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void InitiateAuthentication();
 
-	UFUNCTION(BlueprintCallable)
-		void CancelAllRequests();
-
 private:
 	void HandleOauthResponse(TSharedPtr<FJsonObject> Response, const FString& ErrorMessage);
 
@@ -52,7 +48,5 @@ private:
 	void WaitAndRequestOauthToken(FAuthentication Authentication);
 
 	void AuthenticationError(const FString& ErrorMessage);
-
-	FTSTicker::FDelegateHandle TickerHandle;
 };
 

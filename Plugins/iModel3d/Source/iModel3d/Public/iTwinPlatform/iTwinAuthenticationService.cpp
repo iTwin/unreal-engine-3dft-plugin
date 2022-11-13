@@ -36,18 +36,6 @@ void UiTwinAuthenticationService::InitiateAuthentication()
 		}, FAuthenticationCredentials::Hostname);
 }
 
-void UiTwinAuthenticationService::CancelAllRequests()
-{
-	// Cancel the token request
-	if (TickerHandle.IsValid())
-	{
-		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
-		TickerHandle.Reset();
-	}
-
-	AuthenticationChange.Broadcast("", EAuthenticationStatus::Uninitialized);
-}
-
 void UiTwinAuthenticationService::AuthenticationError(const FString& ErrorMessage)
 {
 	UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
@@ -113,7 +101,7 @@ void UiTwinAuthenticationService::WaitAndRequestOauthToken(FAuthentication Authe
 {
 	AuthenticationChange.Broadcast("", EAuthenticationStatus::RequestedToken);
 
-	TickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
 		[this, Authentication](float Delta) -> bool
 		{
 			// Send the token request
@@ -124,9 +112,7 @@ void UiTwinAuthenticationService::WaitAndRequestOauthToken(FAuthentication Authe
 				{
 					HandleTokenResponse(Response, ErrorMessage, Authentication);
 				}, FAuthenticationCredentials::Hostname);
-			// Delete and stop the ticker (reset delegate and 'return false')
-			// We have a valid http request now, and its handler may initiate a new timer, but at the monent we should remove the current timer
-			TickerHandle.Reset();
+			// One shot tick
 			return false;
 		}), Authentication.AuthPollInterval);
 }

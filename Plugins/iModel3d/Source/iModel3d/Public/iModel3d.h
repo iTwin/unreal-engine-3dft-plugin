@@ -38,6 +38,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "iModel|Load")
 		void LoadModel(FString Url);
 
+	UFUNCTION(BlueprintCallable, Category = "iModel|Load")
+		void Reset();
+
+	UFUNCTION(BlueprintCallable, Category = "iModel|Load")
+		void RefreshUrl(FString Url);
+
 	/* To be implemented in the future
 
 	UFUNCTION(BlueprintCallable, Category = "iModel|Elements")
@@ -52,13 +58,6 @@ public:
 
 
 private:
-	UPROPERTY(EditAnywhere, Category = "iModel|Model")
-		FString LocalPath = "";
-
-	// Implement this in the future by adding tile destruction/re-creation (not just hidding).
-	// UPROPERTY(EditAnywhere, Category = "iModel|Model")
-	// bool bShowInEditor = true;
-
 	UPROPERTY(EditAnywhere, Category = "iModel|Render Materials")
 		UMaterial* OpaqueMaterial = nullptr;
 
@@ -108,8 +107,6 @@ private:
 		FMaterialOverride DefaultMaterial = { { FColor(0xffffffff) }, "Default", false, 0, 0, 0, FColor(0xffffffff) };
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void BeginDestroy() override;
 
 	virtual bool ShouldTickIfViewportsOnly() const override;
@@ -128,6 +125,6 @@ private:
 	bool bInitialized = false;
 
 	bool IsInEditor() const;
-	void Initialize();
+	void Initialize(FString Url);
 	void Deinitialize();
 };
