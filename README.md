@@ -160,13 +160,17 @@ For example, you will see a url with this structure:
 
     6. Check the state of the export using the [Get Export Service](https://developer.bentley.com/apis/mesh-export/operations/get-export/) (Try it out > No auth > configure **id** > Execute).
 
-    7. When the export has been completed, you will receive the Url of the 3DFT:
+    7. When the export has been completed, you will receive the Url of the 3DFT. Copy It:
 
         ![Http response](docs/mesh_export_api_http_response_href.png)
 
 <br/>
 
-7. Use the **href** of the 3DFT on the sample included in this UE project.
+7. Open one of the samples and paste the Url the 3DFT model into the **Url** property of the **Load_iModel_Url** actor.
+
+    ![Paste Url](docs/plugin_sample_paste_url.png)
+
+
 
 
 
