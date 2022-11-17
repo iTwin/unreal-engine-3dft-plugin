@@ -1,6 +1,7 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
+﻿/*---------------------------------------------------------------------------------------------
+* Copyright (c) Bentley Systems, Incorporated. All rights reserved.
+* See LICENSE.md in the repository root for full copyright notice.
+*--------------------------------------------------------------------------------------------*/
 #include "Helpers/PickingActor.h"
 #include "ProceduralMeshComponent.h"
 #include "Kismet/KismetRenderingLibrary.h"

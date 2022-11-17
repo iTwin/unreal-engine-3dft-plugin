@@ -1,5 +1,7 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
+/*---------------------------------------------------------------------------------------------
+* Copyright (c) Bentley Systems, Incorporated. All rights reserved.
+* See LICENSE.md in the repository root for full copyright notice.
+*--------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "CoreMinimal.h"
