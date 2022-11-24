@@ -18,7 +18,7 @@ public class iModel3d : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent" });
 
         PrivateDependencyModuleNames.AddRange(new string[] { "CoreUObject", "Engine", "Slate", "SlateCore", "WebSockets", "Json",
-                                                                 "JsonUtilities", "MeshDescription", "HTTP", "RHI", "RenderCore", "Projects" });
+                                                                 "JsonUtilities", "MeshDescription", "HTTP", "HTTPServer", "RHI", "RenderCore", "Projects" });
         if (Target.bBuildEditor)
         {
             PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd" });

@@ -15,6 +15,11 @@
 
 void FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, const FString& Hostname)
 {
+	FAPIService::SendPostRequest(FString(TEXT("https://")) + Hostname + URL, RequestContent, Callback);
+}
+
+void FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback)
+{
 	// Reference code: https://dev.epicgames.com/community/learning/tutorials/ZdXD/call-rest-api-using-http-json-from-ue5-c
 
 	FHttpModule& HttpModule = FHttpModule::Get();
@@ -29,7 +34,7 @@ void FAPIService::SendPostRequest(const FString& URL, const FString& RequestCont
 	Request->SetContentAsString(RequestContent);
 
 	// Set the http URL
-	Request->SetURL(FString(TEXT("https://")) + Hostname + URL);
+	Request->SetURL(URL);
 
 	// Set the callback, which will execute when the HTTP call is complete
 	Request->OnProcessRequestComplete().BindLambda(
