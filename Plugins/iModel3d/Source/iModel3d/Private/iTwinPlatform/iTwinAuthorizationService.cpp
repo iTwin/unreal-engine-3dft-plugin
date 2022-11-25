@@ -77,44 +77,45 @@ void LaunchWebBrowser(const FString& State, const FString &CodeVerifier)
 	}
 }
 
-
-	/*
-	function AuthorizationTokenRequest(json_data, callback, error_callback)
+void AuthorizationTokenRequest(FString RequestContent, std::function<void(FString, FString, FString, FString)> Callback)
 {
-  var post_data = querystring.stringify(json_data);
-  var post_options =
-  {
-	  host: 'ims.bentley.com',
-	  port: '443 ',
-	  path: '/connect/token',
-	  method: 'POST',
-	  headers: {
-		  'Content-Type': 'application/x-www-form-urlencoded',
-		  'Content-Length': Buffer.byteLength(post_data)
-	  }
-  };
+	auto URL = FString::Printf(TEXT("%s%s"), FAuthorizationCredentials::Server, FAuthorizationCredentials::TokenEndpoint);
 
-  // Set up the request
-  var post_req = https.request(post_options, function(res) {
-	  res.setEncoding('utf8');
-	  res.on('data', function (chunk) {
-		const response = JSON.parse(chunk);
-		if (response.access_token && response.token_type == "Bearer")
+	FAPIService::SendPostRequest(URL, RequestContent, [Callback](TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
+	{
+		if (!ErrorMessage.IsEmpty())
 		{
-		  callback(response.access_token, response.expires_in, response.refresh_token, response.id_token)
+			UE_LOG(LogTemp, Error, TEXT("Error getting authorization token. %s"), *ErrorMessage);
 		}
 		else
 		{
-		  error_callback(response.error, response.error_description)
+			FString ErrorCode;
+			Response->TryGetStringField(TEXT("error"), ErrorCode);
+			if (!ErrorCode.IsEmpty())
+			{
+				UE_LOG(LogTemp, Error, TEXT("Error getting authorization token. %s"), *ErrorCode);
+			}
+			else
+			{
+				FString AuthToken;
+				if (!Response->TryGetStringField(TEXT("access_token"), AuthToken) || Response->GetStringField(TEXT("token_type")) != "Bearer")
+				{
+					UE_LOG(LogTemp, Error, TEXT("Bad oauth response"));
+				}
+				else
+				{
+					auto ExpiresIn = Response->GetStringField(TEXT("expires_in"));
+					auto RefreshToken = Response->GetStringField(TEXT("refresh_token"));
+					auto IdToken = Response->GetStringField(TEXT("id_token"));
+
+					UE_LOG(LogTemp, Warning, TEXT("Success: %s"), *AuthToken);
+
+					Callback(AuthToken, ExpiresIn, RefreshToken, IdToken);
+				}
+			}
 		}
-	  });
-  });
-
-  post_req.write(post_data);
-  post_req.end();
+	});
 }
-
-*/
 
 }
 
@@ -127,7 +128,8 @@ void UITwinAuthorizationService::InitiateAuthorization()
 	auto HttpRouter = HttpServerModule.GetHttpRouter(FAuthorizationCredentials::LocalhostPort);
 	if (HttpRouter.IsValid())
 	{
-		AuthorizeRouteHandle = HttpRouter->BindRoute(FHttpPath(TEXT("/authorize")), EHttpServerRequestVerbs::VERB_GET, [this, State, HttpRouter, CodeVerifier](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete) {
+		AuthorizeRouteHandle = HttpRouter->BindRoute(FHttpPath(TEXT("/authorize")), EHttpServerRequestVerbs::VERB_GET, [this, State, HttpRouter, CodeVerifier](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
+		{
 			UE_LOG(LogTemp, Log, TEXT("Get requested"));
 			if (Request.QueryParams.Contains("code") && Request.QueryParams.Contains("state") && Request.QueryParams["state"] == State)
 			{
@@ -176,179 +178,29 @@ void UITwinAuthorizationService::InitiateAuthorization()
 
 void UITwinAuthorizationService::GetAuthorizationToken(FString AuthorizationCode, FString CodeVerifier)
 {
-	FString RequestContent = FString::Printf(
-		TEXT("grant_type=authorization_code&client_id=%s&redirect_uri=%s&code=%s&code_verifier=%s&scope=%s"),
-		FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *AuthorizationCode, *CodeVerifier, FAuthorizationCredentials::Scope);
+	FString RequestContent = 
+		FString::Printf(TEXT("grant_type=authorization_code&client_id=%s&redirect_uri=%s&code=%s&code_verifier=%s&scope=%s"),
+			FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *AuthorizationCode, *CodeVerifier, FAuthorizationCredentials::Scope);
 
-	auto URL = FString::Printf(TEXT("%s%s"), FAuthorizationCredentials::Server, FAuthorizationCredentials::TokenEndpoint);
-
-	FAPIService::SendPostRequest(URL, RequestContent, [this](TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
-	{
-		// HandleOauthResponse(Response, ErrorMessage);
-
-			if (!ErrorMessage.IsEmpty())
-			{
-				UE_LOG(LogTemp, Error, TEXT("Error getting authorization token. %s"), *ErrorMessage);
-			}
-			else
-			{
-				FString ErrorCode;
-				Response->TryGetStringField(TEXT("error"), ErrorCode);
-				if (!ErrorCode.IsEmpty())
-				{
-					UE_LOG(LogTemp, Error, TEXT("Error getting authorization token. %s"), *ErrorCode);
-				}
-				else
-				{
-					FString AuthToken;
-					if (!Response->TryGetStringField(TEXT("access_token"), AuthToken))
-					{
-						UE_LOG(LogTemp, Error, TEXT("Bad oauth response"));
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Success: %s"), *AuthToken);
-					}
-				}
-			}
+	AuthorizationTokenRequest(RequestContent, [this, AuthorizationCode, CodeVerifier](FString AuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
+		// AuthToken
+		DelayRefreshAuthorizationToken(RefreshToken, AuthorizationCode, CodeVerifier, FCString::Atoi(*ExpiresIn) / 2);
 	});
-
-	//const json_data = { grant_type: 'authorization_code', client_id : 'unreal-test', redirect_uri : redirect_uri, code : auth_code, code_verifier : code_verifier, scope : scope };
-	//AuthorizationTokenRequest(json_data, callback, error_callback)
 }
 
-
-/*
-void UITwinAuthorizationService::CancelAllRequests()
+void UITwinAuthorizationService::DelayRefreshAuthorizationToken(FString RefreshToken, FString AuthorizationCode, FString CodeVerifier, int DelaySeconds)
 {
-	// Cancel the token request
-	if (TickerHandle.IsValid())
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this, RefreshToken, AuthorizationCode, CodeVerifier](float Delta) -> bool
 	{
-		FTSTicker::GetCoreTicker().RemoveTicker(TickerHandle);
-		TickerHandle.Reset();
-	}
+		FString RequestContent =
+			FString::Printf(TEXT("grant_type=refresh_token&client_id=%s&redirect_uri=%s&refresh_token=%s&code=%s&code_verifier=%s&scope=%s"),
+				FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *RefreshToken, *AuthorizationCode, *CodeVerifier, FAuthorizationCredentials::Scope);
 
-	AuthorizationChange.Broadcast({}, EAuthorizationStatus::Uninitialized);
+		AuthorizationTokenRequest(RequestContent, [this, AuthorizationCode, CodeVerifier](FString AuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
+			// AuthToken
+			DelayRefreshAuthorizationToken(RefreshToken, AuthorizationCode, CodeVerifier, FCString::Atoi(*ExpiresIn) / 2);
+		});
+
+		return false; // One tick
+	}), DelaySeconds);
 }
-
-void UITwinAuthorizationService::AuthorizationError(const FString& ErrorMessage)
-{
-	UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
-
-	AuthorizationChange.Broadcast({}, EAuthorizationStatus::AuthorizationError);
-}
-
-void UITwinAuthorizationService::HandleOauthResponse(TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
-{
-	FString ErrorCode;
-
-	// Firstly, handle possible errors
-	if (!ErrorMessage.IsEmpty())
-	{
-		ErrorCode = ErrorMessage;
-	}
-	else
-	{
-		// We have a json, check if there's an error inside
-		Response->TryGetStringField(TEXT("error"), ErrorCode);
-		FString ErrorDescription;
-		if (Response->TryGetStringField(TEXT("error_description"), ErrorCode))
-		{
-			ErrorCode = FString::Printf(TEXT("%s: %s"), *ErrorCode, *ErrorDescription);
-		}
-	}
-
-	if (!ErrorCode.IsEmpty())
-	{
-		AuthorizationError(ErrorCode);
-		return;
-	}
-
-	FAuthorization Authorization;
-
-	// No error at this point, handle the response now.
-	// Retrieve the URL for verification and the device code.
-	FString LaunchURL;
-	if (!Response->TryGetStringField(TEXT("verification_uri_complete"), LaunchURL) ||
-		!Response->TryGetStringField(TEXT("device_code"), Authorization.DeviceCode))
-	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid oauth response"));
-		return;
-	}
-
-	// Read the poll interval
-	double PollInterval = 3.0;
-	Response->TryGetNumberField(TEXT("interval"), PollInterval);
-	Authorization.AuthPollInterval = (float)PollInterval;
-
-	FString Error;
-	FPlatformProcess::LaunchURL(*LaunchURL, nullptr, &Error);
-	if (Error.Len() != 0)
-	{
-		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Error));
-		return;
-	}
-
-	WaitAndRequestOauthToken(Authorization);
-}
-
-void UITwinAuthorizationService::WaitAndRequestOauthToken(FAuthorization Authorization)
-{
-	AuthorizationChange.Broadcast(Authorization, EAuthorizationStatus::RequestedToken);
-
-	TickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
-		[this, Authorization](float Delta) -> bool
-		{
-			// Send the token request
-			FString RequestContent = FString::Printf(
-				TEXT("client_id=%s&device_code=%s&grant_type=%s"),
-				FAuthorizationCredentials::ClientId, *Authorization.DeviceCode, TEXT("urn:ietf:params:oauth:grant-type:device_code"));
-			FAPIService::SendPostRequest(FAuthorizationCredentials::TokenEndpoint, RequestContent, [this, Authorization](TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
-				{
-					HandleTokenResponse(Response, ErrorMessage, Authorization);
-				}, FAuthorizationCredentials::Hostname);
-			// Delete and stop the ticker (reset delegate and 'return false')
-			// We have a valid http request now, and its handler may initiate a new timer, but at the monent we
-			// should remove the current timer
-			TickerHandle.Reset();
-			return false;
-		}), Authorization.AuthPollInterval);
-}
-
-void UITwinAuthorizationService::HandleTokenResponse(TSharedPtr<FJsonObject> Response, const FString& ErrorMessage, FAuthorization Authorization)
-{
-	if (!ErrorMessage.IsEmpty())
-	{
-		AuthorizationError(ErrorMessage);
-		return;
-	}
-
-	FString ErrorCode;
-	Response->TryGetStringField(TEXT("error"), ErrorCode);
-	if (ErrorCode == TEXT("authorization_pending"))
-	{
-		// User still have to authenticate in browser, repeat the request
-		WaitAndRequestOauthToken(Authorization);
-		return;
-	}
-
-	// Other errors:
-	// - "slow_down" = polling too frequently
-	// - "access_denied" = user declined the authorization
-	if (!ErrorCode.IsEmpty())
-	{
-		AuthorizationError(ErrorCode);
-		return;
-	}
-
-	if (!Response->TryGetStringField(TEXT("access_token"), Authorization.AuthToken))
-	{
-		AuthorizationError(TEXT("Bad oauth response"));
-		return;
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Authenticated"));
-
-	AuthorizationChange.Broadcast(Authorization, EAuthorizationStatus::Authenticated);
-}
-*/
