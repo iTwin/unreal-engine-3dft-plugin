@@ -6,13 +6,14 @@
 
 class UITwinAuthorizationService
 {
+	using NewTokenCallback = std::function<void(FString AuthToken, FString Error)>;
 public:
-	void InitiateAuthorization();
+	void InitiateAuthorization(NewTokenCallback Callback);
 
 private:
-	void GetAuthorizationToken(FString AuthorizationCode, FString CodeVerifier);
+	void GetAuthorizationToken(FString AuthorizationCode, FString CodeVerifier, NewTokenCallback Callback);
 
-	void DelayRefreshAuthorizationToken(FString RefreshToken, FString AuthorizationCode, FString CodeVerifier, int DelaySeconds);
+	void DelayRefreshAuthorizationToken(FString RefreshToken, FString AuthorizationCode, FString CodeVerifier, int DelaySeconds, NewTokenCallback Callback);
 
 	FHttpRouteHandle AuthorizeRouteHandle;
 };
