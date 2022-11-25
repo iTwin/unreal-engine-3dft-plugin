@@ -115,10 +115,78 @@ void AuthorizationTokenRequest(FString RequestContent, std::function<void(FStrin
 		}
 	});
 }
-
 }
 
-void UITwinAuthorizationService::InitiateAuthorization(NewTokenCallback Callback)
+TUniquePtr<UITwinAuthorizationService> UITwinAuthorizationService::Singleton;
+
+UITwinAuthorizationService& UITwinAuthorizationService::Get()
+{
+	if (nullptr == Singleton)
+	{
+		check(IsInGameThread());
+		Singleton = MakeUnique<UITwinAuthorizationService>();
+		Singleton->InitiateAuthorization();
+	}
+	check(Singleton);
+	return *Singleton;
+}
+
+FString UITwinAuthorizationService::GetAuthToken()
+{
+	std::unique_lock<std::mutex> lock(Mutex);
+	return AuthToken;
+}
+
+FString UITwinAuthorizationService::GetLastError()
+{
+	std::unique_lock<std::mutex> lock(Mutex);
+	return LastError;
+}
+
+FTSTicker::FDelegateHandle UITwinAuthorizationService::GetAuthTokenAsync(std::function<void(FString AuthToken)> Callback)
+{
+	auto Token = GetAuthToken();
+	if (!Token.IsEmpty())
+	{
+		Callback(Token);
+		return {};
+	}
+	else
+	{
+		return FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this, Callback](float Delta) -> bool
+		{
+			auto Token = GetAuthToken();
+			if (!Token.IsEmpty())
+			{
+				Callback(Token);
+				return false;
+			}
+			else
+			{
+				return true; // Continue ticking
+			}
+		}), 0.200); // 200ms
+	}
+}
+
+void UITwinAuthorizationService::UpdateAuthToken(FString Token)
+{
+	UE_LOG(LogTemp, Warning, TEXT("iTwin AuthToken renewed!"));
+	std::unique_lock<std::mutex> lock(Mutex);
+	AuthToken = Token;
+	LastError = "";
+}
+
+void UITwinAuthorizationService::UpdateError(FString ErrorMessage)
+{
+	UE_LOG(LogTemp, Error, TEXT("Error: %s"), *ErrorMessage); // FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Error));
+	std::unique_lock<std::mutex> lock(Mutex);
+	AuthToken = "";
+	LastError = ErrorMessage;
+}
+
+
+void UITwinAuthorizationService::InitiateAuthorization()
 {
 	FString State = GenerateRandomCharacters(10);
 	FString CodeVerifier = GenerateRandomCharacters(128);
@@ -129,22 +197,24 @@ void UITwinAuthorizationService::InitiateAuthorization(NewTokenCallback Callback
 	{
 		if (AuthorizeRouteHandle)
 		{
-			Callback("", TEXT("'/authorize' route was already binded!"));
+			UpdateError(TEXT("'/authorize' route was already binded!"));
 			HttpRouter->UnbindRoute(AuthorizeRouteHandle);
 		}
-		AuthorizeRouteHandle = HttpRouter->BindRoute(FHttpPath(TEXT("/authorize")), EHttpServerRequestVerbs::VERB_GET, [this, State, HttpRouter, CodeVerifier, Callback](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
+		AuthorizeRouteHandle = HttpRouter->BindRoute(FHttpPath(TEXT("/authorize")), EHttpServerRequestVerbs::VERB_GET, [this, State, HttpRouter, CodeVerifier](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
 		{
 			if (Request.QueryParams.Contains("code") && Request.QueryParams.Contains("state") && Request.QueryParams["state"] == State)
 			{
 				auto AuthorizationCode = Request.QueryParams["code"];
 				OnComplete(FHttpServerResponse::Create(TEXT("<h1>Sign in was successful!</h1>You can close this browser window and return to the application."), TEXT("text/html")));
-				GetAuthorizationToken(AuthorizationCode, CodeVerifier, Callback);
+				Authorization.AuthorizationCode = AuthorizationCode;
+				Authorization.CodeVerifier = CodeVerifier;
+				GetAuthorizationToken();
 			}
 			else if (Request.QueryParams.Contains("error"))
 			{
 				auto Html = FString::Printf(TEXT("<h1>Error signin in!</h1><br/>%s<br/><br/>You can close this browser window and return to the application."), *Request.QueryParams["error_description"]);
 				OnComplete(FHttpServerResponse::Create(*Html, TEXT("text/html")));
-				Callback("", Request.QueryParams["error_description"]);
+				UpdateError(Request.QueryParams["error_description"]);
 			}
 			else
 			{
@@ -164,7 +234,7 @@ void UITwinAuthorizationService::InitiateAuthorization(NewTokenCallback Callback
 
 		if (!AuthorizeRouteHandle)
 		{
-			Callback("", FString::Printf(TEXT("Could not bind '/authorize' route on server on port = %d. This binding may already be in use!"), FAuthorizationCredentials::LocalhostPort));
+			UpdateError(FString::Printf(TEXT("Could not bind '/authorize' route on server on port = %d. This binding may already be in use!"), FAuthorizationCredentials::LocalhostPort));
 			return;
 		}
 
@@ -173,7 +243,7 @@ void UITwinAuthorizationService::InitiateAuthorization(NewTokenCallback Callback
 	}
 	else
 	{
-		Callback("", FString::Printf(TEXT("Could not start web server on port = %d. This post may already be in use!"), FAuthorizationCredentials::LocalhostPort));
+		UpdateError(FString::Printf(TEXT("Could not start web server on port = %d. This post may already be in use!"), FAuthorizationCredentials::LocalhostPort));
 		return;
 	}
 
@@ -181,35 +251,41 @@ void UITwinAuthorizationService::InitiateAuthorization(NewTokenCallback Callback
 	if (!Error.IsEmpty())
 	{
 		HttpRouter->UnbindRoute(AuthorizeRouteHandle);
-		Callback("", Error);
+		UpdateError(Error);
 	}
 }
 
-void UITwinAuthorizationService::GetAuthorizationToken(FString AuthorizationCode, FString CodeVerifier, NewTokenCallback Callback)
+void UITwinAuthorizationService::GetAuthorizationToken()
 {
 	FString RequestContent = 
 		FString::Printf(TEXT("grant_type=authorization_code&client_id=%s&redirect_uri=%s&code=%s&code_verifier=%s&scope=%s"),
-			FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *AuthorizationCode, *CodeVerifier, FAuthorizationCredentials::Scope);
+			FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *Authorization.AuthorizationCode, *Authorization.CodeVerifier, FAuthorizationCredentials::Scope);
 
-	AuthorizationTokenRequest(RequestContent, [this, AuthorizationCode, CodeVerifier, Callback](FString AuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
-		Callback(AuthToken, "");
-		DelayRefreshAuthorizationToken(RefreshToken, AuthorizationCode, CodeVerifier, FCString::Atoi(*ExpiresIn) / 2, Callback);
-		}, [Callback](FString Error) { Callback("", Error); });
+	AuthorizationTokenRequest(RequestContent, [this](FString AuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
+		Authorization.RefreshToken = RefreshToken;
+		Authorization.ExpiresIn = FCString::Atoi(*ExpiresIn);
+		Authorization.IdToken = IdToken;
+		UpdateAuthToken(AuthToken);
+		DelayRefreshAuthorizationToken();
+		}, [this](FString Error) { UpdateError(Error); });
 }
 
-void UITwinAuthorizationService::DelayRefreshAuthorizationToken(FString RefreshToken, FString AuthorizationCode, FString CodeVerifier, int DelaySeconds, NewTokenCallback Callback)
+void UITwinAuthorizationService::DelayRefreshAuthorizationToken()
 {
-	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this, RefreshToken, AuthorizationCode, CodeVerifier, Callback](float Delta) -> bool
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float Delta) -> bool
 	{
 		FString RequestContent =
 			FString::Printf(TEXT("grant_type=refresh_token&client_id=%s&redirect_uri=%s&refresh_token=%s&code=%s&code_verifier=%s&scope=%s"),
-				FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *RefreshToken, *AuthorizationCode, *CodeVerifier, FAuthorizationCredentials::Scope);
+				FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *Authorization.RefreshToken, *Authorization.AuthorizationCode, *Authorization.CodeVerifier, FAuthorizationCredentials::Scope);
 
-		AuthorizationTokenRequest(RequestContent, [this, AuthorizationCode, CodeVerifier, Callback](FString AuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
-			Callback(AuthToken, "");
-			DelayRefreshAuthorizationToken(RefreshToken, AuthorizationCode, CodeVerifier, FCString::Atoi(*ExpiresIn) / 2, Callback);
-		}, [Callback](FString Error) { Callback("", Error); });
+		AuthorizationTokenRequest(RequestContent, [this](FString AuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
+			Authorization.RefreshToken = RefreshToken;
+			Authorization.ExpiresIn = FCString::Atoi(*ExpiresIn);
+			Authorization.IdToken = IdToken;
+			UpdateAuthToken(AuthToken);
+			DelayRefreshAuthorizationToken();
+		}, [this](FString Error) { UpdateError(Error); });
 
 		return false; // One tick
-	}), DelaySeconds);
+	}), Authorization.ExpiresIn);
 }
