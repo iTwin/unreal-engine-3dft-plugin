@@ -2,7 +2,7 @@
 * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
 * See LICENSE.md in the repository root for full copyright notice.
 *--------------------------------------------------------------------------------------------*/
-#include "iModelExportService.h"
+#include "iTwinServices.h"
 
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonReader.h"
@@ -32,10 +32,10 @@ TSharedPtr<FJsonObject> GetChildObject(TSharedPtr<FJsonObject> JsonRoot, FString
 }
 }
 
-FAPIService::FRequestPtr FIModelExportService::GetExport(FString ExportId, FString AuthToken, std::function<void(FIModelExportService::FExportInfo ExportInfo)> Callback)
+void FITwinServices::GetExport(FString ExportId, FString AuthToken, FCancelRequest& CancelRequest, std::function<void(FITwinServices::FExportInfo ExportInfo)> Callback)
 {
 	FString RequestContent = TEXT("");
-	return FAPIService::SendGetRequest(TEXT("https://api.bentley.com/mesh-export/" + ExportId), RequestContent, AuthToken, [Callback](const FString& Response, const FString& ErrorMessage)
+	CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(TEXT("https://api.bentley.com/mesh-export/" + ExportId), RequestContent, AuthToken, [Callback](const FString& Response, const FString& ErrorMessage)
 	{
 		if (!ErrorMessage.IsEmpty())
 		{
@@ -66,11 +66,7 @@ FAPIService::FRequestPtr FIModelExportService::GetExport(FString ExportId, FStri
 			return;
 		}
 
-		if (!JsonHref->TryGetStringField(TEXT("changesetId"), ExportInfo.ChangesetId))
-		{
-			UE_LOG(LogTemp, Error, TEXT("Invalid Reply: missing response ChangesetId field!"));
-			return;
-		}
+		JsonHref->TryGetStringField(TEXT("changesetId"), ExportInfo.ChangesetId);
 
 		JsonHref = GetChildObject(JsonRoot, "export/_links/mesh");
 		if (!JsonHref || !JsonHref->TryGetStringField(TEXT("href"), ExportInfo.MeshUrl))
@@ -83,26 +79,44 @@ FAPIService::FRequestPtr FIModelExportService::GetExport(FString ExportId, FStri
 	});
 }
 
-
-void FIModelExportService::GetExportAndRefresh(FString ExportId, FCancelExport& CancelExport, std::function<void(FExportInfo ExportInfo, bool bRefreshUrl)> Callback)
+void FITwinServices::GetExportAndRefresh(FString ExportId, FCancelRequest& CancelRequest, std::function<void(FExportInfo ExportInfo, bool bRefreshUrl)> Callback)
 {
-	CancelExport.AutoCancelTicker.Reset();
-	CancelExport.AutoCancelRequest.Reset();
+	CancelRequest.AutoCancelTicker.Reset();
+	CancelRequest.AutoCancelRequest.Reset();
 
-	CancelExport.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([ExportId, Callback, &CancelExport](FString AuthToken)
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([ExportId, Callback, &CancelRequest](FString AuthToken)
 	{
-		CancelExport.AutoCancelRequest = FIModelExportService::GetExport(ExportId, AuthToken, [AuthToken, ExportId, Callback, &CancelExport](FIModelExportService::FExportInfo ExportInfo)
+		GetExport(ExportId, AuthToken, CancelRequest, [AuthToken, ExportId, Callback, &CancelRequest](FExportInfo ExportInfo)
 		{
 			Callback(ExportInfo, false);
 			constexpr auto DelaySeconds = 30 * 60;
-			CancelExport.AutoCancelTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([AuthToken, ExportId, Callback, &CancelExport](float Delta) -> bool
+			CancelRequest.AutoCancelTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([AuthToken, ExportId, Callback, &CancelRequest](float Delta) -> bool
 			{
-				CancelExport.AutoCancelRequest = FIModelExportService::GetExport(ExportId, AuthToken, [Callback](FIModelExportService::FExportInfo ExportInfo)
+				GetExport(ExportId, AuthToken, CancelRequest, [Callback](FExportInfo ExportInfo)
 				{
 					Callback(ExportInfo, true);
 				});
 				return true; // Infinite loop
 			}), DelaySeconds * 0.5);
+		});
+	});
+}
+
+void FITwinServices::GetProjects(FCancelRequest& CancelRequest, std::function<void(TArray<FITwinServices::FProjectInfo> Projects)> Callback)
+{
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest](FString AuthToken)
+	{
+		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(TEXT("https://api.bentley.com/projects"), "", AuthToken, [this](const FString& Response, const FString& ErrorMessage)
+		{
+			if (!ErrorMessage.IsEmpty())
+			{
+				UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
+				return;
+			}
+
+			//FProjectList ProjectList;
+			//FJsonObjectConverter::JsonObjectStringToUStruct<FProjectList>(Response, &ProjectList, 0, 0);
+			//ProjectListReceived.Broadcast(std::move(ProjectList));
 		});
 	});
 }

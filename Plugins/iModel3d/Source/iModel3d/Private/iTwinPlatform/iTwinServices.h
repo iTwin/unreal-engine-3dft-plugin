@@ -11,10 +11,10 @@
 #include "Common/AutoCancelTicker.h"
 #include "Common/AutoCancelRequest.h"
 
-class FIModelExportService
+class FITwinServices
 {
 public:
-	struct FCancelExport
+	struct FCancelRequest
 	{
 		FAutoCancelTicker AutoCancelTicker;
 		FAutoCancelRequest AutoCancelRequest;
@@ -27,11 +27,19 @@ public:
 		FString MeshUrl;
 	};
 
+	struct FProjectInfo
+	{
+		FString Id;
+		FString DisplayName;
+		FString ProjectNumber;
+	};
+
+
 public:
-	static TSharedRef<IHttpRequest, ESPMode::ThreadSafe> GetExport(FString ExportId, FString AuthToken, std::function<void(FExportInfo ExportInfo)> Callback);
+	static void GetExport(FString ExportId, FString AuthToken, FCancelRequest& CancelRequest, std::function<void(FExportInfo ExportInfo)> Callback);
 
-	static void GetExportAndRefresh(FString ExportId, FCancelExport &CancelExport, std::function<void(FExportInfo ExportInfo, bool bRefreshUrl)> Callback);
+	static void GetExportAndRefresh(FString ExportId, FCancelRequest &CancelRequest, std::function<void(FExportInfo ExportInfo, bool bRefreshUrl)> Callback);
 
-	// static void GetExports(FString iModelId);
+	static void GetProjects(FCancelRequest& CancelRequest, std::function<void(TArray<FProjectInfo> FITwinServices::Projects)> Callback);
 };
 

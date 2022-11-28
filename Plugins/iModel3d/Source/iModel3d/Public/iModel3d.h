@@ -9,7 +9,7 @@
 
 #include "MaterialOverride.h"
 #include "ElementInfo.h"
-#include "iTwinPlatform/iModelExportService.h"
+#include "iTwinPlatform/iTwinServices.h"
 
 #include "iModel3d.generated.h"
 
@@ -142,7 +142,7 @@ private:
 	TSharedPtr<FMeshComponentManager> MeshComponentManager;
 	bool bInitialized = false;
 
-	FIModelExportService::FCancelExport CancelExport;
+	FITwinServices::FCancelRequest CancelRequest;
 
 	bool IsInEditor() const;
 	void Initialize(FString Url);

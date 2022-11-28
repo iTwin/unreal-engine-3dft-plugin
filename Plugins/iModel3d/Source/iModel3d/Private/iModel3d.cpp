@@ -205,7 +205,7 @@ FString AiModel3d::GetElementId(uint32_t ElementIndex)
 
 void AiModel3d::LoadModel(FString InExportId)
 {
-	FIModelExportService::GetExportAndRefresh(InExportId, CancelExport, [this](FIModelExportService::FExportInfo ExportInfo, bool bRefreshUrl)
+	FITwinServices::GetExportAndRefresh(InExportId, CancelRequest, [this](FITwinServices::FExportInfo ExportInfo, bool bRefreshUrl)
 	{
 		if (bRefreshUrl)
 		{
