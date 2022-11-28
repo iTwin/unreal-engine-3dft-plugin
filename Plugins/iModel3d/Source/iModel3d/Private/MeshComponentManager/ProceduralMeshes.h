@@ -26,6 +26,8 @@ public:
 
 	void Hide(UCustomProcMeshComponent* Component);
 
+	void Reset();
+
 private:
 	void UpdatePool();
 
@@ -37,5 +39,6 @@ private:
 	TArray<UCustomProcMeshComponent*> Pool;
 	TArray<UCustomProcMeshComponent*> ComponentsToShow;
 	TArray<UCustomProcMeshComponent*> ComponentsToHide;
+	TArray<UCustomProcMeshComponent*> AllComponents;
 	bool bIsInEditor;
 };

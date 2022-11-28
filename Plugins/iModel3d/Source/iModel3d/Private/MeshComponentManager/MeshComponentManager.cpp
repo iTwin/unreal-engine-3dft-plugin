@@ -30,6 +30,7 @@ FMeshComponentManager::FMeshComponentManager(AActor* InActor, bool bIsInEditor)
 FMeshComponentManager::~FMeshComponentManager()
 {
 	BatchLoaderThread->Kill(true);
+	ProceduralMeshes->Reset();
 }
 
 void FMeshComponentManager::SetMaterials(UMaterialInterface* Opaque, UMaterialInterface* Translucent)

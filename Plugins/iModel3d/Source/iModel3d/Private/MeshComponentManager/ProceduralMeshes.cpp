@@ -65,6 +65,7 @@ void FProceduralMeshes::UpdatePool()
 		MeshComponent->RegisterComponent();
 
 		Pool.Push(MeshComponent);
+		AllComponents.Push(MeshComponent);
 	}
 }
 
@@ -98,4 +99,13 @@ void FProceduralMeshes::Hide(UCustomProcMeshComponent* Component)
 {
 	ComponentsToHide.Add(Component);
 	//Component.MeshComponent->SetMeshSectionVisible(0, false);
+}
+
+void FProceduralMeshes::Reset()
+{
+	for (auto& Component : AllComponents)
+	{
+		Component->ClearAllMeshSections();
+		Component->UnregisterComponent();
+	}
 }
