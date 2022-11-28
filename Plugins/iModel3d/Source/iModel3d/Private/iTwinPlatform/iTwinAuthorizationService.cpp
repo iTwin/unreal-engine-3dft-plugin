@@ -1,6 +1,9 @@
+/*---------------------------------------------------------------------------------------------
+* Copyright (c) Bentley Systems, Incorporated. All rights reserved.
+* See LICENSE.md in the repository root for full copyright notice.
+*--------------------------------------------------------------------------------------------*/
 #include "iTwinAuthorizationService.h"
 
-#include "Containers/Ticker.h"
 #include "Misc/App.h"
 #include "Misc/MessageDialog.h"
 
@@ -171,7 +174,7 @@ FTSTicker::FDelegateHandle UITwinAuthorizationService::GetAuthTokenAsync(std::fu
 
 void UITwinAuthorizationService::UpdateAuthToken(FString Token)
 {
-	UE_LOG(LogTemp, Warning, TEXT("iTwin AuthToken renewed!"));
+	UE_LOG(LogTemp, Display, TEXT("iTwin AuthToken renewed!"));
 	std::unique_lock<std::mutex> lock(Mutex);
 	AuthToken = Token;
 	LastError = "";

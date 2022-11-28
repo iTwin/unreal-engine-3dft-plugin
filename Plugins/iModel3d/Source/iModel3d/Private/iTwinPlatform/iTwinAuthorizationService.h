@@ -1,3 +1,7 @@
+/*---------------------------------------------------------------------------------------------
+* Copyright (c) Bentley Systems, Incorporated. All rights reserved.
+* See LICENSE.md in the repository root for full copyright notice.
+*--------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include <mutex>
@@ -7,6 +11,7 @@
 #include "IHttpRouter.h"
 
 #include "Common/SpinLock.h"
+#include "Common/AutoCancelAsync.h"
 
 class UITwinAuthorizationService
 {
@@ -34,6 +39,7 @@ private:
 	static TUniquePtr<UITwinAuthorizationService> Singleton;
 
 	FHttpRouteHandle AuthorizeRouteHandle;
+	FAutoCancelAsync RefreshTickerHandle;
 
 	std::mutex Mutex;
 	FString LastError;
