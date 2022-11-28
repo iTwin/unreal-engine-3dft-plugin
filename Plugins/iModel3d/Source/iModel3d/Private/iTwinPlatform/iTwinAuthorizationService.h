@@ -13,11 +13,11 @@
 #include "Common/SpinLock.h"
 #include "Common/AutoCancelAsync.h"
 
-class UITwinAuthorizationService
+class FITwinAuthorizationService
 {
 	using NewTokenCallback = std::function<void(FString AuthToken, FString Error)>;
 public:
-	static UITwinAuthorizationService& UITwinAuthorizationService::Get();
+	static FITwinAuthorizationService& FITwinAuthorizationService::Get();
 
 	FString GetAuthToken();
 
@@ -36,7 +36,7 @@ private:
 
 	void UpdateError(FString ErrorMessage);
 
-	static TUniquePtr<UITwinAuthorizationService> Singleton;
+	static TUniquePtr<FITwinAuthorizationService> Singleton;
 
 	FHttpRouteHandle AuthorizeRouteHandle;
 	FAutoCancelAsync RefreshTickerHandle;

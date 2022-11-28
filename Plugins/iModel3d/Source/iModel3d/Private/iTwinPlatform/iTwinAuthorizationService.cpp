@@ -120,33 +120,33 @@ void AuthorizationTokenRequest(FString RequestContent, std::function<void(FStrin
 }
 }
 
-TUniquePtr<UITwinAuthorizationService> UITwinAuthorizationService::Singleton;
+TUniquePtr<FITwinAuthorizationService> FITwinAuthorizationService::Singleton;
 
-UITwinAuthorizationService& UITwinAuthorizationService::Get()
+FITwinAuthorizationService& FITwinAuthorizationService::Get()
 {
 	if (nullptr == Singleton)
 	{
 		check(IsInGameThread());
-		Singleton = MakeUnique<UITwinAuthorizationService>();
+		Singleton = MakeUnique<FITwinAuthorizationService>();
 		Singleton->InitiateAuthorization();
 	}
 	check(Singleton);
 	return *Singleton;
 }
 
-FString UITwinAuthorizationService::GetAuthToken()
+FString FITwinAuthorizationService::GetAuthToken()
 {
 	std::unique_lock<std::mutex> lock(Mutex);
 	return AuthToken;
 }
 
-FString UITwinAuthorizationService::GetLastError()
+FString FITwinAuthorizationService::GetLastError()
 {
 	std::unique_lock<std::mutex> lock(Mutex);
 	return LastError;
 }
 
-FTSTicker::FDelegateHandle UITwinAuthorizationService::GetAuthTokenAsync(std::function<void(FString AuthToken)> Callback)
+FTSTicker::FDelegateHandle FITwinAuthorizationService::GetAuthTokenAsync(std::function<void(FString AuthToken)> Callback)
 {
 	auto Token = GetAuthToken();
 	if (!Token.IsEmpty())
@@ -172,7 +172,7 @@ FTSTicker::FDelegateHandle UITwinAuthorizationService::GetAuthTokenAsync(std::fu
 	}
 }
 
-void UITwinAuthorizationService::UpdateAuthToken(FString Token)
+void FITwinAuthorizationService::UpdateAuthToken(FString Token)
 {
 	UE_LOG(LogTemp, Display, TEXT("iTwin AuthToken renewed!"));
 	std::unique_lock<std::mutex> lock(Mutex);
@@ -180,7 +180,7 @@ void UITwinAuthorizationService::UpdateAuthToken(FString Token)
 	LastError = "";
 }
 
-void UITwinAuthorizationService::UpdateError(FString ErrorMessage)
+void FITwinAuthorizationService::UpdateError(FString ErrorMessage)
 {
 	UE_LOG(LogTemp, Error, TEXT("Error: %s"), *ErrorMessage); // FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(Error));
 	std::unique_lock<std::mutex> lock(Mutex);
@@ -189,7 +189,7 @@ void UITwinAuthorizationService::UpdateError(FString ErrorMessage)
 }
 
 
-void UITwinAuthorizationService::InitiateAuthorization()
+void FITwinAuthorizationService::InitiateAuthorization()
 {
 	FString State = GenerateRandomCharacters(10);
 	FString CodeVerifier = GenerateRandomCharacters(128);
@@ -258,7 +258,7 @@ void UITwinAuthorizationService::InitiateAuthorization()
 	}
 }
 
-void UITwinAuthorizationService::GetAuthorizationToken()
+void FITwinAuthorizationService::GetAuthorizationToken()
 {
 	FString RequestContent = 
 		FString::Printf(TEXT("grant_type=authorization_code&client_id=%s&redirect_uri=%s&code=%s&code_verifier=%s&scope=%s"),
@@ -273,7 +273,7 @@ void UITwinAuthorizationService::GetAuthorizationToken()
 		}, [this](FString Error) { UpdateError(Error); });
 }
 
-void UITwinAuthorizationService::DelayRefreshAuthorizationToken()
+void FITwinAuthorizationService::DelayRefreshAuthorizationToken()
 {
 	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float Delta) -> bool
 	{
