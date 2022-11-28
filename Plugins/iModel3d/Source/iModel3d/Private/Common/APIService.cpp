@@ -4,7 +4,6 @@
 *--------------------------------------------------------------------------------------------*/
 #include "APIService.h"
 
-#include "HttpModule.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 
@@ -13,17 +12,17 @@
 #include "Serialization/JsonSerializer.h"
 #include "JsonUtilities.h"
 
-void FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, const FString& Hostname)
+FAPIService::FRequestPtr FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, const FString& Hostname)
 {
-	FAPIService::SendPostRequest(FString(TEXT("https://")) + Hostname + URL, RequestContent, Callback);
+	return FAPIService::SendPostRequest(FString(TEXT("https://")) + Hostname + URL, RequestContent, Callback);
 }
 
-void FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback)
+FAPIService::FRequestPtr FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback)
 {
 	// Reference code: https://dev.epicgames.com/community/learning/tutorials/ZdXD/call-rest-api-using-http-json-from-ue5-c
 
 	FHttpModule& HttpModule = FHttpModule::Get();
-	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = HttpModule.CreateRequest();
+	FRequestPtr Request = HttpModule.CreateRequest();
 
 	// Preparing a POST request
 	Request->SetVerb(TEXT("POST"));
@@ -40,35 +39,28 @@ void FAPIService::SendPostRequest(const FString& URL, const FString& RequestCont
 	Request->OnProcessRequestComplete().BindLambda(
 		[Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 		{
-			bool bHandled = false;
-			FString ErrorMessage;
-
 			if (bConnectedSuccessfully)
 			{
 				// We should have a JSON response - attempt to process it.
 				const FString& ResponseString = Response->GetContentAsString();
 
 				TSharedPtr<FJsonObject> JsonRoot;
-				TSharedRef<TJsonReader<> > Reader = TJsonReaderFactory<>::Create(ResponseString);
+				TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseString);
 				if (!FJsonSerializer::Deserialize(Reader, JsonRoot) || !JsonRoot.IsValid())
 				{
 					// In some cases, Response string will contain an error message
-					ErrorMessage = ResponseString.IsEmpty() ? TEXT("Problem parsing response") : ResponseString;
+					auto ErrorMessage = ResponseString.IsEmpty() ? TEXT("Problem parsing response") : ResponseString;
+					TSharedPtr<FJsonObject> DummyJson;
+					Callback(DummyJson, ErrorMessage);
 				}
 				else
 				{
-					Callback(JsonRoot, ErrorMessage);
-					bHandled = true;
+					Callback(JsonRoot, FString());
 				}
 			}
 			else
 			{
-				ErrorMessage = EHttpRequestStatus::ToString(Request->GetStatus());
-			}
-
-			if (!bHandled)
-			{
-				// Execute callback with error string
+				auto ErrorMessage = EHttpRequestStatus::ToString(Request->GetStatus());
 				TSharedPtr<FJsonObject> DummyJson;
 				Callback(DummyJson, ErrorMessage);
 			}
@@ -76,14 +68,15 @@ void FAPIService::SendPostRequest(const FString& URL, const FString& RequestCont
 
 	// Submit the request
 	Request->ProcessRequest();
+	return Request;
 }
 
-void FAPIService::SendGetRequest(const FString& URL, const FString& RequestContent, const FString& AuthToken, TFunction<void(const FString&, const FString&)> Callback)
+FAPIService::FRequestPtr FAPIService::SendGetRequest(const FString& URL, const FString& RequestContent, const FString& AuthToken, TFunction<void(const FString&, const FString&)> Callback)
 {
 	// Reference code: https://dev.epicgames.com/community/learning/tutorials/ZdXD/call-rest-api-using-http-json-from-ue5-c
 
 	FHttpModule& HttpModule = FHttpModule::Get();
-	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = HttpModule.CreateRequest();
+	FRequestPtr Request = HttpModule.CreateRequest();
 
 	// Preparing a GET request
 	Request->SetVerb(TEXT("GET"));
@@ -100,32 +93,17 @@ void FAPIService::SendGetRequest(const FString& URL, const FString& RequestConte
 	Request->OnProcessRequestComplete().BindLambda(
 		[Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 		{
-			bool bHandled = false;
-			FString ErrorMessage;
-
 			if (bConnectedSuccessfully)
 			{
-				// We should have a JSON response - attempt to process it.
-				const FString& ResponseString = Response->GetContentAsString();
-
-				Callback(ResponseString, ErrorMessage);
-				bHandled = true;
-
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *ResponseString);
+				Callback(Response->GetContentAsString(), FString());
 			}
 			else
 			{
-				ErrorMessage = EHttpRequestStatus::ToString(Request->GetStatus());
-			}
-
-			if (!bHandled)
-			{
-				// Execute callback with error string
-				TSharedPtr<FJsonObject> DummyJson;
-				Callback(FString(), ErrorMessage);
+				Callback(FString(), EHttpRequestStatus::ToString(Request->GetStatus()));
 			}
 		});
 
 	// Submit the request
 	Request->ProcessRequest();
+	return Request;
 }

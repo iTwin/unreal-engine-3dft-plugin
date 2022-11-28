@@ -275,7 +275,7 @@ void FITwinAuthorizationService::GetAuthorizationToken()
 
 void FITwinAuthorizationService::DelayRefreshAuthorizationToken()
 {
-	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float Delta) -> bool
+	RefreshTickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float Delta) -> bool
 	{
 		FString RequestContent =
 			FString::Printf(TEXT("grant_type=refresh_token&client_id=%s&redirect_uri=%s&refresh_token=%s&code=%s&code_verifier=%s&scope=%s"),

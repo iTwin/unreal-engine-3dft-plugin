@@ -11,7 +11,7 @@
 #include "IHttpRouter.h"
 
 #include "Common/SpinLock.h"
-#include "Common/AutoCancelAsync.h"
+#include "Common/AutoCancelTicker.h"
 
 class FITwinAuthorizationService
 {
@@ -39,7 +39,7 @@ private:
 	static TUniquePtr<FITwinAuthorizationService> Singleton;
 
 	FHttpRouteHandle AuthorizeRouteHandle;
-	FAutoCancelAsync RefreshTickerHandle;
+	FAutoCancelTicker RefreshTickerHandle;
 
 	std::mutex Mutex;
 	FString LastError;

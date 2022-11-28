@@ -5,18 +5,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Containers/Ticker.h"
 
-struct FAutoCancelAsync
+#include "HttpModule.h"
+
+struct FAutoCancelRequest
 {
 public:
-	~FAutoCancelAsync();
+	using FRequestRef = TSharedRef<IHttpRequest, ESPMode::ThreadSafe>;
+public:
+	~FAutoCancelRequest();
 
-	FTSTicker::FDelegateHandle& operator =(FTSTicker::FDelegateHandle &Handle);
-	FTSTicker::FDelegateHandle& operator =(FTSTicker::FDelegateHandle &&Handle);
-
-private:
 	void Reset();
 
-	FTSTicker::FDelegateHandle DelegateHandle;
+	FRequestRef operator =(FRequestRef InRequest);
+
+private:
+	TArray<FRequestRef> Requests;
 };

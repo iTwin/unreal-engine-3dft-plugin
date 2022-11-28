@@ -27,12 +27,13 @@ void FDataRequestManager::SetBaseUrl(FString Url)
 	}
 	else
 	{
-        if (Url.StartsWith("http")) {
+		UrlParams = "";
+		if (Url.StartsWith("http")) {
             FString Left, Right;
             if (Url.Split(TEXT("?"), &Left, &Right)) {
                 BaseUrl = Left;
                 UrlParams = Right;
-                UE_LOG(LogTemp, Error, TEXT("Split base url %s from params %s"), *BaseUrl, *UrlParams);
+                // UE_LOG(LogTemp, Warning, TEXT("Split base url %s from params %s"), *BaseUrl, *UrlParams);
                 return;
             }
         }
