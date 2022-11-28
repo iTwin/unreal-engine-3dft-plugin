@@ -9,6 +9,7 @@
 
 #include "MaterialOverride.h"
 #include "ElementInfo.h"
+#include "iTwinPlatform/iTwinServices.h"
 
 #include "iModel3d.generated.h"
 
@@ -21,6 +22,14 @@ enum class EGeometryQuality : uint8
 	GQ_Maximum UMETA(DisplayName = "High"),
 	GQ_High UMETA(DisplayName = "Normal")
 };
+
+UENUM(BlueprintType)
+enum class ELoadingMethod : uint8
+{
+	LM_Automatic UMETA(DisplayName = "Automatic"),
+	LM_Manual UMETA(DisplayName = "Manual")
+};
+
 
 UCLASS()
 class IMODEL3D_API AiModel3d : public AActor
@@ -38,13 +47,10 @@ public:
 		void GetStatusInfo(FString& Status, float& Percentage);
 
 	UFUNCTION(BlueprintCallable, Category = "iModel|Load")
-		void LoadModel(FString Url);
+		void LoadModel(FString ExportId);
 
 	UFUNCTION(BlueprintCallable, Category = "iModel|Load")
 		void Reset();
-
-	UFUNCTION(BlueprintCallable, Category = "iModel|Load")
-		void RefreshUrl(FString Url);
 
 	/* To be implemented in the future
 
@@ -60,11 +66,11 @@ public:
 
 
 private:
-	UPROPERTY(EditAnywhere, Category = "iModel|Render Materials")
-		UMaterial* OpaqueMaterial = nullptr;
+	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
+		ELoadingMethod LoadingMethod = ELoadingMethod::LM_Automatic;
 
-	UPROPERTY(EditAnywhere, Category = "iModel|Render Materials")
-		UMaterial* TranslucentMaterial = nullptr;
+	UPROPERTY(EditAnywhere, Category = "iModel|Loading", meta = (EditCondition = "LoadingMethod == ELoadingMethod::LM_Automatic"))
+		FString ExportId = "69528456-7b4e-4de1-8049-4777cbefd201";
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
 		float ObjectLoadingSpeed = 1.f;
@@ -74,6 +80,12 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
 		bool bUseDiskCache = true;
+
+	UPROPERTY(EditAnywhere, Category = "iModel|Render Materials")
+		UMaterial* OpaqueMaterial = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "iModel|Render Materials")
+		UMaterial* TranslucentMaterial = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Optimization")
 		uint32 MaxTrianglesPerBatch = 25000;
@@ -110,6 +122,10 @@ private:
 
 protected:
 	virtual void BeginDestroy() override;
+	virtual void PostLoad() override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
 	virtual bool ShouldTickIfViewportsOnly() const override;
 
@@ -125,6 +141,8 @@ private:
 
 	TSharedPtr<FMeshComponentManager> MeshComponentManager;
 	bool bInitialized = false;
+
+	FITwinServices::FCancelRequest CancelRequest;
 
 	bool IsInEditor() const;
 	void Initialize(FString Url);

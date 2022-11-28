@@ -93,6 +93,27 @@ void AiModel3d::Deinitialize()
 	bInitialized = false;
 }
 
+void AiModel3d::PostLoad()
+{
+	Super::PostLoad();
+	if (LoadingMethod == ELoadingMethod::LM_Automatic && !ExportId.IsEmpty())
+	{
+		LoadModel(ExportId);
+	}
+}
+
+#if WITH_EDITOR
+void AiModel3d::PostEditChangeProperty(struct FPropertyChangedEvent& e)
+{
+	FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
+	if (PropertyName == "ExportId")
+	{
+		UE_LOG(LogTemp, Display, TEXT("ExportId modified"));
+	}
+	Super::PostEditChangeProperty(e);
+}
+#endif
+
 void AiModel3d::BeginDestroy()
 {
 	Deinitialize();
@@ -182,27 +203,29 @@ FString AiModel3d::GetElementId(uint32_t ElementIndex)
 	}
 }
 
-void AiModel3d::LoadModel(FString Url)
+void AiModel3d::LoadModel(FString InExportId)
 {
-	Deinitialize();
-	Initialize(Url);
+	FITwinServices::GetExportAndRefresh(InExportId, CancelRequest, [this](FITwinServices::FExportInfo ExportInfo, bool bRefreshUrl)
+	{
+		if (bRefreshUrl)
+		{
+			MeshComponentManager->SetUrl(ExportInfo.MeshUrl);
+		}
+		else if (ExportInfo.Status == "Complete")
+		{
+			Deinitialize();
+			Initialize(ExportInfo.MeshUrl);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("iModel is being exported! Try re-loading the level in a few seconds."));
+		}
+	});
 }
 
 void AiModel3d::Reset()
 {
 	Deinitialize();
-}
-
-void AiModel3d::RefreshUrl(FString Url)
-{
-	if (!bInitialized)
-	{
-		UE_LOG(LogTemp, Error, TEXT("RefreshUrl: iModel not initialized yet!"));
-	}
-	else
-	{
-		MeshComponentManager->SetUrl(Url);
-	}
 }
 
 /* To be implemented in the future

@@ -4,7 +4,6 @@
 *--------------------------------------------------------------------------------------------*/
 #include "APIService.h"
 
-#include "HttpModule.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 
@@ -13,12 +12,42 @@
 #include "Serialization/JsonSerializer.h"
 #include "JsonUtilities.h"
 
-void FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, const FString& Hostname)
+namespace
+{
+void ParseResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully, const TFunction<void(TSharedPtr<FJsonObject>, const FString&)> &Callback)
+{
+	if (bConnectedSuccessfully)
+	{
+		const FString& ResponseString = Response->GetContentAsString();
+
+		TSharedPtr<FJsonObject> JsonRoot;
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseString);
+		if (!FJsonSerializer::Deserialize(Reader, JsonRoot) || !JsonRoot.IsValid())
+		{
+			// In some cases, Response string will contain an error message
+			auto ErrorMessage = ResponseString.IsEmpty() ? TEXT("Problem parsing response") : ResponseString;
+			TSharedPtr<FJsonObject> DummyJson;
+			Callback(DummyJson, ErrorMessage);
+		}
+		else
+		{
+			Callback(JsonRoot, FString());
+		}
+	}
+	else
+	{
+		TSharedPtr<FJsonObject> DummyJson;
+		Callback(DummyJson, EHttpRequestStatus::ToString(Request->GetStatus()));
+	}
+}
+}
+
+FAPIService::FRequestPtr FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback)
 {
 	// Reference code: https://dev.epicgames.com/community/learning/tutorials/ZdXD/call-rest-api-using-http-json-from-ue5-c
 
 	FHttpModule& HttpModule = FHttpModule::Get();
-	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = HttpModule.CreateRequest();
+	FRequestPtr Request = HttpModule.CreateRequest();
 
 	// Preparing a POST request
 	Request->SetVerb(TEXT("POST"));
@@ -29,56 +58,23 @@ void FAPIService::SendPostRequest(const FString& URL, const FString& RequestCont
 	Request->SetContentAsString(RequestContent);
 
 	// Set the http URL
-	Request->SetURL(FString(TEXT("https://")) + Hostname + URL);
+	Request->SetURL(URL);
 
 	// Set the callback, which will execute when the HTTP call is complete
-	Request->OnProcessRequestComplete().BindLambda(
-		[Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
-		{
-			bool bHandled = false;
-			FString ErrorMessage;
-
-			if (bConnectedSuccessfully)
-			{
-				// We should have a JSON response - attempt to process it.
-				const FString& ResponseString = Response->GetContentAsString();
-
-				TSharedPtr<FJsonObject> JsonRoot;
-				TSharedRef<TJsonReader<> > Reader = TJsonReaderFactory<>::Create(ResponseString);
-				if (!FJsonSerializer::Deserialize(Reader, JsonRoot) || !JsonRoot.IsValid())
-				{
-					// In some cases, Response string will contain an error message
-					ErrorMessage = ResponseString.IsEmpty() ? TEXT("Problem parsing response") : ResponseString;
-				}
-				else
-				{
-					Callback(JsonRoot, ErrorMessage);
-					bHandled = true;
-				}
-			}
-			else
-			{
-				ErrorMessage = EHttpRequestStatus::ToString(Request->GetStatus());
-			}
-
-			if (!bHandled)
-			{
-				// Execute callback with error string
-				TSharedPtr<FJsonObject> DummyJson;
-				Callback(DummyJson, ErrorMessage);
-			}
-		});
+	Request->OnProcessRequestComplete().BindLambda([Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+	{
+		ParseResponse(Request, Response, bConnectedSuccessfully, Callback);
+	});
 
 	// Submit the request
 	Request->ProcessRequest();
+	return Request;
 }
 
-void FAPIService::SendGetRequest(const FString& URL, const FString& RequestContent, const FString& AuthToken, TFunction<void(const FString&, const FString&)> Callback)
+FAPIService::FRequestPtr FAPIService::SendGetRequest(const FString& URL, const FString& RequestContent, const FString& AuthToken, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback)
 {
-	// Reference code: https://dev.epicgames.com/community/learning/tutorials/ZdXD/call-rest-api-using-http-json-from-ue5-c
-
 	FHttpModule& HttpModule = FHttpModule::Get();
-	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = HttpModule.CreateRequest();
+	FRequestPtr Request = HttpModule.CreateRequest();
 
 	// Preparing a GET request
 	Request->SetVerb(TEXT("GET"));
@@ -92,35 +88,12 @@ void FAPIService::SendGetRequest(const FString& URL, const FString& RequestConte
 	Request->SetURL(URL);
 
 	// Set the callback, which will execute when the HTTP call is complete
-	Request->OnProcessRequestComplete().BindLambda(
-		[Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
-		{
-			bool bHandled = false;
-			FString ErrorMessage;
-
-			if (bConnectedSuccessfully)
-			{
-				// We should have a JSON response - attempt to process it.
-				const FString& ResponseString = Response->GetContentAsString();
-
-				Callback(ResponseString, ErrorMessage);
-				bHandled = true;
-
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *ResponseString);
-			}
-			else
-			{
-				ErrorMessage = EHttpRequestStatus::ToString(Request->GetStatus());
-			}
-
-			if (!bHandled)
-			{
-				// Execute callback with error string
-				TSharedPtr<FJsonObject> DummyJson;
-				Callback(FString(), ErrorMessage);
-			}
-		});
+	Request->OnProcessRequestComplete().BindLambda([Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+	{
+		ParseResponse(Request, Response, bConnectedSuccessfully, Callback);
+	});
 
 	// Submit the request
 	Request->ProcessRequest();
+	return Request;
 }
