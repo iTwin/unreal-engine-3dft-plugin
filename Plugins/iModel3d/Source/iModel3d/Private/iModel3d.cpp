@@ -105,12 +105,15 @@ void AiModel3d::PostLoad()
 #if WITH_EDITOR
 void AiModel3d::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 {
+	Super::PostEditChangeProperty(e);
 	FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
 	if (PropertyName == "ExportId")
 	{
-		UE_LOG(LogTemp, Display, TEXT("ExportId modified"));
+		if (LoadingMethod == ELoadingMethod::LM_Automatic && !ExportId.IsEmpty())
+		{
+			LoadModel(ExportId);
+		}
 	}
-	Super::PostEditChangeProperty(e);
 }
 #endif
 
