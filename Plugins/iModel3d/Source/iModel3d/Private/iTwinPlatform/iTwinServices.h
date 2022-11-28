@@ -22,24 +22,19 @@ public:
 
 	struct FExportInfo
 	{
+		FString Id;
+		FString DisplayName;
+		FString Status;
 		FString iModelId;
 		FString ChangesetId;
 		FString MeshUrl;
 	};
-
-	struct FProjectInfo
-	{
-		FString Id;
-		FString DisplayName;
-		FString ProjectNumber;
-	};
-
 
 public:
 	static void GetExport(FString ExportId, FString AuthToken, FCancelRequest& CancelRequest, std::function<void(FExportInfo ExportInfo)> Callback);
 
 	static void GetExportAndRefresh(FString ExportId, FCancelRequest &CancelRequest, std::function<void(FExportInfo ExportInfo, bool bRefreshUrl)> Callback);
 
-	static void GetProjects(FCancelRequest& CancelRequest, std::function<void(TArray<FProjectInfo> FITwinServices::Projects)> Callback);
+	static void GetExports(FCancelRequest& CancelRequest, std::function<void(TArray<FExportInfo> Exports)> Callback);
 };
 

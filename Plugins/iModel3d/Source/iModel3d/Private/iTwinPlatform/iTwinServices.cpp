@@ -34,45 +34,45 @@ TSharedPtr<FJsonObject> GetChildObject(TSharedPtr<FJsonObject> JsonRoot, FString
 
 void FITwinServices::GetExport(FString ExportId, FString AuthToken, FCancelRequest& CancelRequest, std::function<void(FITwinServices::FExportInfo ExportInfo)> Callback)
 {
-	FString RequestContent = TEXT("");
-	CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(TEXT("https://api.bentley.com/mesh-export/" + ExportId), RequestContent, AuthToken, [Callback](const FString& Response, const FString& ErrorMessage)
+	CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(TEXT("https://api.bentley.com/mesh-export/" + ExportId), "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 	{
 		if (!ErrorMessage.IsEmpty())
 		{
-			UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
+			UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
 			return;
 		}
 
-		TSharedPtr<FJsonObject> JsonRoot;
-		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response);
-		if (!FJsonSerializer::Deserialize(Reader, JsonRoot) || !JsonRoot.IsValid())
+		auto JsonExport = JsonRoot->GetObjectField("export");
+		if (!JsonExport)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Invalid Reply: invalid Json format!"));
+			UE_LOG(LogTemp, Error, TEXT("Invalid Reply: Export not defined."));
 			return;
 		}
 
 		auto JsonHref = GetChildObject(JsonRoot, "export/request");
-		FString ExportType;
-		if (!JsonHref || !JsonHref->TryGetStringField(TEXT("exportType"), ExportType) || ExportType != "3DFT")
+		if (!JsonHref)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Invalid Reply: Export request not defined."));
+			return;
+		}
+
+		if (JsonHref->GetStringField(TEXT("exportType")) != "3DFT")
 		{
 			UE_LOG(LogTemp, Error, TEXT("Invalid Reply: Export Type is incorrect!"));
 			return;
 		}
 
-		FExportInfo ExportInfo;
-		if (!JsonHref->TryGetStringField(TEXT("iModelId"), ExportInfo.iModelId))
-		{
-			UE_LOG(LogTemp, Error, TEXT("Invalid Reply: missing response iModelId field!"));
-			return;
-		}
+		FExportInfo ExportInfo = { JsonExport->GetStringField("id"), JsonExport->GetStringField("displayName"), JsonExport->GetStringField("status"),
+									JsonHref->GetStringField(TEXT("iModelId")), JsonHref->GetStringField(TEXT("changesetId")) };
 
-		JsonHref->TryGetStringField(TEXT("changesetId"), ExportInfo.ChangesetId);
-
-		JsonHref = GetChildObject(JsonRoot, "export/_links/mesh");
-		if (!JsonHref || !JsonHref->TryGetStringField(TEXT("href"), ExportInfo.MeshUrl))
+		if (ExportInfo.Status == "Complete")
 		{
-			UE_LOG(LogTemp, Error, TEXT("Invalid Reply: missing response href field!"));
-			return;
+			JsonHref = GetChildObject(JsonRoot, "export/_links/mesh");
+			if (!JsonHref || !JsonHref->TryGetStringField(TEXT("href"), ExportInfo.MeshUrl))
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid Reply: missing response href field!"));
+				return;
+			}
 		}
 
 		Callback(std::move(ExportInfo));
@@ -102,21 +102,27 @@ void FITwinServices::GetExportAndRefresh(FString ExportId, FCancelRequest& Cance
 	});
 }
 
-void FITwinServices::GetProjects(FCancelRequest& CancelRequest, std::function<void(TArray<FITwinServices::FProjectInfo> Projects)> Callback)
+void FITwinServices::GetExports(FCancelRequest& CancelRequest, std::function<void(TArray<FExportInfo> Exports)> Callback)
 {
 	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest](FString AuthToken)
 	{
-		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(TEXT("https://api.bentley.com/projects"), "", AuthToken, [this](const FString& Response, const FString& ErrorMessage)
+		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(TEXT("https://api.bentley.com/mesh-export/"), "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 		{
 			if (!ErrorMessage.IsEmpty())
 			{
-				UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
+				UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
 				return;
 			}
 
-			//FProjectList ProjectList;
-			//FJsonObjectConverter::JsonObjectStringToUStruct<FProjectList>(Response, &ProjectList, 0, 0);
-			//ProjectListReceived.Broadcast(std::move(ProjectList));
+			auto JsonExports = JsonRoot->GetArrayField("exports");
+			TArray<FExportInfo> Exports;
+			for (const auto JsonExport : JsonExports)
+			{
+				const auto JsonObject = JsonExport->AsObject();
+				FExportInfo Export = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName"), JsonObject->GetStringField("status") };
+				Exports.Push(Export);
+			}
+			Callback(Exports);
 		});
 	});
 }

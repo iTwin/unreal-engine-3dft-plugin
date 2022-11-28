@@ -211,10 +211,14 @@ void AiModel3d::LoadModel(FString InExportId)
 		{
 			MeshComponentManager->SetUrl(ExportInfo.MeshUrl);
 		}
-		else
+		else if (ExportInfo.Status == "Complete")
 		{
 			Deinitialize();
 			Initialize(ExportInfo.MeshUrl);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("iModel is being exported! Try re-loading the level in a few seconds."));
 		}
 	});
 }
