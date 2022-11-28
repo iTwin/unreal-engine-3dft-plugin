@@ -1,12 +1,22 @@
 # Unreal Engine 3DFT Plugin
 
+## Tech Preview
+
+This project is a Technical Preview and is available for testing purposes only. **Do not use in production**.
+
+You can get more information about the state of the plugin and the iTwin Export Mesh Service [here](https://developer.bentley.com/apis/mesh-export/operations/get-export/).
+
+</br>
+
 ## Table of contents
 
 1. [Pre-requisites](#pre-requisites)
 2. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
 3. [Technology overview](#technology-overview)
 4. [Plugin](#plugin)
-5. [iTwin Platform](#itwin-platform)
+5. [Create an iModel](#create-an-imodel)
+
+</br>
 
 ## Pre-requisites
 
@@ -94,6 +104,19 @@ If you want to learn more, click of the image to watch the session about 3DFT th
 
 ## Plugin
 
+### Loading
+
+There are two loading methods: automatic and manual.
+- Automatic: set the **ExportId** of the iModel and it will be automatically loaded.
+- Manual: use blueprints to set the **ExportId**.
+
+![Options_0](docs/plugin_loading.png)
+
+With the other 3 properties, you can configure how the model is loaded:
+- Use Disk Cache: check this to let Unreal cache the downloaded parts of the iModel. This will speed-up the loading of the iModel the next time you visualize it.
+- Object Loading Speed: defines the speed of creation of meshes. Big values produce drops on the framerate.
+- Requests in Parallel: defines the number of tiles that are downloaded in parallel.
+
 ### Render Materials
 
 Define the materials that will be used to render the iModel.
@@ -122,7 +145,7 @@ We can beautify the iModel by modifying the original colors and individual eleme
 
 <br/>
 
-## iTwin Platform
+## Create an iModel
 
 If you want to create an iModel for the first time and visualize it in your plugin, follow these steps:
 
@@ -154,19 +177,15 @@ For example, you will see a url with this structure:
     
     4. Press the **Execute** button.
 
-    5. This will start the export process and generate an **HTTP response** with the **id** of the export.
+    5. This will start the export process and generate an **HTTP response** with the id of the export (**ExportId**).
     
         ![Http response](docs/mesh_export_api_http_response.png)
 
-    6. Check the state of the export using the [Get Export Service](https://developer.bentley.com/apis/mesh-export/operations/get-export/) (Try it out > No auth > configure **id** > Execute).
-
-    7. When the export has been completed, you will receive the Url of the 3DFT. Copy It:
-
-        ![Http response](docs/mesh_export_api_http_response_href.png)
+    6. You can check the state of the export using the [Get Export Service](https://developer.bentley.com/apis/mesh-export/operations/get-export/) (Try it out > No auth > configure **id** > Execute).
 
 <br/>
 
-7. Open one of the samples and paste the Url the 3DFT model into the **Url** property of the **Load_iModel_Url** actor.
+7. Open one of the samples and paste the **ExportId** into the **ExportId** property of the **iModel** actor.
 
     ![Paste Url](docs/plugin_sample_paste_url.png)
 
