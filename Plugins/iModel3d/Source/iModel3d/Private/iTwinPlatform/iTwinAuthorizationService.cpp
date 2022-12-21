@@ -264,11 +264,11 @@ void FITwinAuthorizationService::GetAuthorizationToken()
 		FString::Printf(TEXT("grant_type=authorization_code&client_id=%s&redirect_uri=%s&code=%s&code_verifier=%s&scope=%s"),
 			FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *Authorization.AuthorizationCode, *Authorization.CodeVerifier, FAuthorizationCredentials::Scope);
 
-	AuthorizationTokenRequest(RequestContent, [this](FString AuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
+	AuthorizationTokenRequest(RequestContent, [this](FString NewAuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
 		Authorization.RefreshToken = RefreshToken;
 		Authorization.ExpiresIn = FCString::Atoi(*ExpiresIn);
 		Authorization.IdToken = IdToken;
-		UpdateAuthToken(AuthToken);
+		UpdateAuthToken(NewAuthToken);
 		DelayRefreshAuthorizationToken();
 		}, [this](FString Error) { UpdateError(Error); });
 }
@@ -281,11 +281,11 @@ void FITwinAuthorizationService::DelayRefreshAuthorizationToken()
 			FString::Printf(TEXT("grant_type=refresh_token&client_id=%s&redirect_uri=%s&refresh_token=%s&code=%s&code_verifier=%s&scope=%s"),
 				FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *Authorization.RefreshToken, *Authorization.AuthorizationCode, *Authorization.CodeVerifier, FAuthorizationCredentials::Scope);
 
-		AuthorizationTokenRequest(RequestContent, [this](FString AuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
+		AuthorizationTokenRequest(RequestContent, [this](FString NewAuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
 			Authorization.RefreshToken = RefreshToken;
 			Authorization.ExpiresIn = FCString::Atoi(*ExpiresIn);
 			Authorization.IdToken = IdToken;
-			UpdateAuthToken(AuthToken);
+			UpdateAuthToken(NewAuthToken);
 			DelayRefreshAuthorizationToken();
 		}, [this](FString Error) { UpdateError(Error); });
 

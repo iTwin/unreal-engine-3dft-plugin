@@ -17,7 +17,7 @@ class FITwinAuthorizationService
 {
 	using NewTokenCallback = std::function<void(FString AuthToken, FString Error)>;
 public:
-	static FITwinAuthorizationService& FITwinAuthorizationService::Get();
+	static FITwinAuthorizationService& Get();
 
 	FString GetAuthToken();
 
