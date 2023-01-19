@@ -116,7 +116,6 @@ void AiModel3d::Tick(float DeltaTime)
 
 	if (!bTickCalled)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AiModel3d::Tick first tick called"));
 		bTickCalled = true;
 		if (LoadingMethod == ELoadingMethod::LM_Automatic && !ExportId.IsEmpty())
 		{
