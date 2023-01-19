@@ -211,17 +211,21 @@ void FITwinAuthorizationService::InitiateAuthorization()
 				OnComplete(FHttpServerResponse::Create(TEXT("<h1>Sign in was successful!</h1>You can close this browser window and return to the application."), TEXT("text/html")));
 				Authorization.AuthorizationCode = AuthorizationCode;
 				Authorization.CodeVerifier = CodeVerifier;
+				FHttpServerModule::Get().StopAllListeners();
 				GetAuthorizationToken();
 			}
 			else if (Request.QueryParams.Contains("error"))
 			{
 				auto Html = FString::Printf(TEXT("<h1>Error signin in!</h1><br/>%s<br/><br/>You can close this browser window and return to the application."), *Request.QueryParams["error_description"]);
 				OnComplete(FHttpServerResponse::Create(*Html, TEXT("text/html")));
+
+				FHttpServerModule::Get().StopAllListeners();
 				UpdateError(Request.QueryParams["error_description"]);
 			}
 			else
 			{
 				OnComplete(FHttpServerResponse::Create(TEXT(""), TEXT("text/html")));
+				FHttpServerModule::Get().StopAllListeners();
 				return true;
 			}
 			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this, HttpRouter](float Delta) -> bool
