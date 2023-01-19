@@ -122,7 +122,6 @@ private:
 
 protected:
 	virtual void BeginDestroy() override;
-	virtual void PostLoad() override;
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
@@ -140,11 +139,12 @@ private:
 	bool bDirtyOptions = false;
 
 	TSharedPtr<FMeshComponentManager> MeshComponentManager;
-	bool bInitialized = false;
+	bool bMeshComponentManagerInitialized = false;
+	bool bTickCalled = false;
 
 	FITwinServices::FCancelRequest CancelRequest;
 
 	bool IsInEditor() const;
-	void Initialize(FString Url);
-	void Deinitialize();
+	void InitializeMeshComponentManager();
+	void DeinitializeMeshComponentManager();
 };
