@@ -198,12 +198,7 @@ void FITwinAuthorizationService::InitiateAuthorization()
 	auto HttpRouter = HttpServerModule.GetHttpRouter(FAuthorizationCredentials::LocalhostPort);
 	if (HttpRouter.IsValid())
 	{
-		if (AuthorizeRouteHandle)
-		{
-			UpdateError(TEXT("'/authorize' route was already binded!"));
-			HttpRouter->UnbindRoute(AuthorizeRouteHandle);
-		}
-		AuthorizeRouteHandle = HttpRouter->BindRoute(FHttpPath(TEXT("/authorize")), EHttpServerRequestVerbs::VERB_GET, [this, State, HttpRouter, CodeVerifier](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
+		auto AuthorizeRouteHandle = HttpRouter->BindRoute(FHttpPath(TEXT("/authorize")), EHttpServerRequestVerbs::VERB_GET, [this, State, HttpRouter, CodeVerifier](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
 		{
 			if (Request.QueryParams.Contains("code") && Request.QueryParams.Contains("state") && Request.QueryParams["state"] == State)
 			{
@@ -230,10 +225,6 @@ void FITwinAuthorizationService::InitiateAuthorization()
 			}
 			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this, HttpRouter](float Delta) -> bool
 			{
-				if (HttpRouter.IsValid() && this->AuthorizeRouteHandle)
-				{
-					HttpRouter->UnbindRoute(this->AuthorizeRouteHandle);
-				}
 				return false; // One tick
 			}), 0.0001f);
 			return true;
@@ -242,23 +233,22 @@ void FITwinAuthorizationService::InitiateAuthorization()
 		if (!AuthorizeRouteHandle)
 		{
 			UpdateError(FString::Printf(TEXT("Could not bind '/authorize' route on server on port = %d. This binding may already be in use!"), FAuthorizationCredentials::LocalhostPort));
-			return;
 		}
-
-		HttpServerModule.StartAllListeners();
-		UE_LOG(LogTemp, Log, TEXT("Web server started on port = %d"), FAuthorizationCredentials::LocalhostPort);
+		else
+		{
+			HttpServerModule.StartAllListeners();
+			UE_LOG(LogTemp, Log, TEXT("Web server started on port = %d"), FAuthorizationCredentials::LocalhostPort);
+			auto Error = LaunchWebBrowser(State, CodeVerifier);
+			if (!Error.IsEmpty())
+			{
+				HttpServerModule.StartAllListeners();
+				UpdateError(Error);
+			}
+		}
 	}
 	else
 	{
 		UpdateError(FString::Printf(TEXT("Could not start web server on port = %d. This post may already be in use!"), FAuthorizationCredentials::LocalhostPort));
-		return;
-	}
-
-	auto Error = LaunchWebBrowser(State, CodeVerifier);
-	if (!Error.IsEmpty())
-	{
-		HttpRouter->UnbindRoute(AuthorizeRouteHandle);
-		UpdateError(Error);
 	}
 }
 

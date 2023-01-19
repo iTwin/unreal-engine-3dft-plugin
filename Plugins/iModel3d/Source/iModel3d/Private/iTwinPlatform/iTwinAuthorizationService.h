@@ -38,7 +38,6 @@ private:
 
 	static TUniquePtr<FITwinAuthorizationService> Singleton;
 
-	FHttpRouteHandle AuthorizeRouteHandle;
 	FAutoCancelTicker RefreshTickerHandle;
 
 	std::mutex Mutex;
