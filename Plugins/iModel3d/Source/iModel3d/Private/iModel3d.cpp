@@ -33,7 +33,7 @@ AiModel3d::AiModel3d(const FObjectInitializer& ObjectInitializer) : Super(Object
 	TranslucentMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/TranslucentMat.TranslucentMat'")));
 }
 
-void AiModel3d::Initialize(FString Url)
+void AiModel3d::InitializeMeshComponentManager()
 {
 	TArray<FMatOverride> Overrides;
 	for (const auto& Mat : MaterialOverrides)
@@ -53,7 +53,6 @@ void AiModel3d::Initialize(FString Url)
 		{ RequestsInParallel, MaxTrianglesPerBatch, { uint8_t(NearRangeGeometryQuality), uint8_t(FarRangeGeometryQuality)}, IgnoreTranslucency },
 		{ ObjectLoadingSpeed, ShadowDistanceCulling, bUseDiskCache });
 
-	MeshComponentManager->SetUrl(Url);
 	for (const auto& Element : ElementInfos)
 	{
 		GraphicOptions->SetElement(Element);
@@ -77,34 +76,21 @@ void AiModel3d::Initialize(FString Url)
 		RootComponent->SetIsVisualizationComponent(true);
 	}
 #endif
-
-	bInitialized = true;
 }
 
-void AiModel3d::Deinitialize()
+void AiModel3d::DeinitializeMeshComponentManager()
 {
-	if (!bInitialized)
+	if (bMeshComponentManagerInitialized)
 	{
-		return;
-	}
-
-	MeshComponentManager.Reset();
-
-	bInitialized = false;
-}
-
-void AiModel3d::PostLoad()
-{
-	Super::PostLoad();
-	if (LoadingMethod == ELoadingMethod::LM_Automatic && !ExportId.IsEmpty())
-	{
-		LoadModel(ExportId);
+		MeshComponentManager.Reset();
+		bMeshComponentManagerInitialized = false;
 	}
 }
 
 #if WITH_EDITOR
 void AiModel3d::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AiModel3d::PostEditChangeProperty()"));
 	Super::PostEditChangeProperty(e);
 	FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
 	if (PropertyName == "ExportId")
@@ -119,7 +105,7 @@ void AiModel3d::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 
 void AiModel3d::BeginDestroy()
 {
-	Deinitialize();
+	DeinitializeMeshComponentManager();
 
 	Super::BeginDestroy();
 }
@@ -128,7 +114,16 @@ void AiModel3d::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!bInitialized)
+	if (!bTickCalled)
+	{
+		bTickCalled = true;
+		if (LoadingMethod == ELoadingMethod::LM_Automatic && !ExportId.IsEmpty())
+		{
+			LoadModel(ExportId);
+		}
+	}
+
+	if (!bMeshComponentManagerInitialized)
 	{
 		return;
 	}
@@ -216,19 +211,22 @@ void AiModel3d::LoadModel(FString InExportId)
 		}
 		else if (ExportInfo.Status == "Complete")
 		{
-			Deinitialize();
-			Initialize(ExportInfo.MeshUrl);
+			DeinitializeMeshComponentManager();
+			InitializeMeshComponentManager();
+			bMeshComponentManagerInitialized = true;
+
+			MeshComponentManager->SetUrl(ExportInfo.MeshUrl);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("iModel is being exported! Try re-loading the level in a few seconds."));
+			UE_LOG(LogTemp, Error, TEXT("iModel is being exported! Try re-loading the iModel in a few seconds."));
 		}
 	});
 }
 
 void AiModel3d::Reset()
 {
-	Deinitialize();
+	DeinitializeMeshComponentManager();
 }
 
 /* To be implemented in the future
