@@ -22,17 +22,17 @@
 #include "RayTracingInstance.h"
 #include "Stats/Stats.h"
 
-DECLARE_STATS_GROUP(TEXT("ProceduralMesh2"), STATGROUP_ProceduralMesh2, STATCAT_Advanced);
+DECLARE_STATS_GROUP(TEXT("iModelProceduralMesh"), STATGROUP_iModelProceduralMesh, STATCAT_Advanced);
 
-DECLARE_CYCLE_STAT(TEXT("Create ProcMesh Proxy"), STAT_ProcMesh_CreateSceneProxy, STATGROUP_ProceduralMesh2);
-DECLARE_CYCLE_STAT(TEXT("Create Mesh Scene Proxy"), STAT_ProcMesh_CreateMeshSceneProxy, STATGROUP_ProceduralMesh2);
-DECLARE_CYCLE_STAT(TEXT("Create Mesh Scene Proxy.Init"), STAT_ProcMesh_CreateMeshSceneProxyInit, STATGROUP_ProceduralMesh2);
-DECLARE_CYCLE_STAT(TEXT("Get ProcMesh Elements"), STAT_ProcMesh_GetMeshElements, STATGROUP_ProceduralMesh2);
+DECLARE_CYCLE_STAT(TEXT("Create ProcMesh Proxy"), STAT_ProcMesh_CreateSceneProxy, STATGROUP_iModelProceduralMesh);
+DECLARE_CYCLE_STAT(TEXT("Create Mesh Scene Proxy"), STAT_ProcMesh_CreateMeshSceneProxy, STATGROUP_iModelProceduralMesh);
+DECLARE_CYCLE_STAT(TEXT("Create Mesh Scene Proxy.Init"), STAT_ProcMesh_CreateMeshSceneProxyInit, STATGROUP_iModelProceduralMesh);
+DECLARE_CYCLE_STAT(TEXT("Get ProcMesh Elements"), STAT_ProcMesh_GetMeshElements, STATGROUP_iModelProceduralMesh);
 
 DEFINE_LOG_CATEGORY_STATIC(LogProceduralComponent, Log, All);
 
 static TAutoConsoleVariable<int32> CVarRayTracingProceduralMesh(
-	TEXT("r.RayTracing.Geometry.ProceduralMeshes"),
+	TEXT("r.RayTracing.Geometry.iModelProceduralMeshes"),
 	1,
 	TEXT("Include procedural meshes in ray tracing effects (default = 1 (procedural meshes enabled in ray tracing))"));
 
