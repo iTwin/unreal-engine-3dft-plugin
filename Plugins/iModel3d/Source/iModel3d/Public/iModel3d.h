@@ -9,12 +9,12 @@
 
 #include "MaterialOverride.h"
 #include "ElementInfo.h"
-#include "iTwinPlatform/iTwinServices.h"
 
 #include "iModel3d.generated.h"
 
 class FMeshComponentManager;
 struct FGraphicOptions;
+struct FCancelRequest;
 
 UENUM(BlueprintType)
 enum class EGeometryQuality : uint8
@@ -142,7 +142,7 @@ private:
 	bool bMeshComponentManagerInitialized = false;
 	bool bTickCalled = false;
 
-	FITwinServices::FCancelRequest CancelRequest;
+	std::shared_ptr<FCancelRequest> CancelRequest;
 
 	bool IsInEditor() const;
 	void InitializeMeshComponentManager();

@@ -12,6 +12,14 @@
 #include "Common/APIService.h"
 #include "iTwinAuthorizationService.h"
 
+struct FiTwinServicesEndPoints
+{
+	static constexpr auto Server = TEXT("https://api.bentley.com");
+	static constexpr auto MeshExport = TEXT("mesh-export");
+	static constexpr auto iTwins = TEXT("itwins");
+	static constexpr auto iModels = TEXT("imodels");
+};
+
 namespace
 {
 TSharedPtr<FJsonObject> GetChildObject(TSharedPtr<FJsonObject> JsonRoot, FString Element)
@@ -32,9 +40,88 @@ TSharedPtr<FJsonObject> GetChildObject(TSharedPtr<FJsonObject> JsonRoot, FString
 }
 }
 
+void FITwinServices::GetiTwins(FCancelRequest& CancelRequest, std::function<void(TArray<FiTwinInfo> iTwins)> Callback)
+{
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest](FString AuthToken)
+	{
+		auto URL = FString::Printf(TEXT("%s/%s/?subClass=Project&status=Active"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::iTwins);
+		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+			{
+				if (!ErrorMessage.IsEmpty())
+				{
+					UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
+					return;
+				}
+
+				auto JsonExports = JsonRoot->GetArrayField("iTwins");
+				TArray<FiTwinInfo> iTwins;
+				for (const auto JsonExport : JsonExports)
+				{
+					const auto JsonObject = JsonExport->AsObject();
+					FiTwinInfo iTwinInfo = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName"), JsonObject->GetStringField("status"), JsonObject->GetStringField("number") };
+					iTwins.Push(iTwinInfo);
+				}
+				Callback(iTwins);
+			});
+	});
+}
+
+void FITwinServices::GetiTwiniModels(FCancelRequest& CancelRequest, FString iTwinId, std::function<void(TArray<FiModelInfo> iModels)> Callback)
+{
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, iTwinId](FString AuthToken)
+	{
+		auto URL = FString::Printf(TEXT("%s/%s/?iTwinId=%s"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::iModels, *iTwinId);
+		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+		{
+			if (!ErrorMessage.IsEmpty())
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
+				return;
+			}
+
+			auto JsonExports = JsonRoot->GetArrayField("iModels");
+			TArray<FiModelInfo> iModels;
+			for (const auto JsonExport : JsonExports)
+			{
+				const auto JsonObject = JsonExport->AsObject();
+				FiModelInfo iModel = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName") };
+				iModels.Push(iModel);
+			}
+			Callback(iModels);
+		}, "v2");
+	});
+}
+
+void FITwinServices::GetiModelChangesets(FCancelRequest& CancelRequest, FString iModelId, std::function<void(TArray<FChangesetInfo> Changesets)> Callback)
+{
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, iModelId](FString AuthToken)
+	{
+		auto URL = FString::Printf(TEXT("%s/%s/%s/changesets?$orderBy=index%20desc"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::iModels, *iModelId);
+		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+			{
+				if (!ErrorMessage.IsEmpty())
+				{
+					UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
+					return;
+				}
+
+				auto JsonExports = JsonRoot->GetArrayField("changesets");
+				TArray<FChangesetInfo> Changesets;
+				for (const auto JsonExport : JsonExports)
+				{
+					const auto JsonObject = JsonExport->AsObject();
+					FChangesetInfo Changeset = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName"), JsonObject->GetStringField("description"), JsonObject->GetIntegerField("index") };
+					Changesets.Push(Changeset);
+				}
+				Callback(Changesets);
+			});
+	});
+}
+
 void FITwinServices::GetExport(FString ExportId, FString AuthToken, FCancelRequest& CancelRequest, std::function<void(FITwinServices::FExportInfo ExportInfo)> Callback)
 {
-	CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(TEXT("https://api.bentley.com/mesh-export/" + ExportId), "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+	auto URL = FString::Printf(TEXT("%s/%s/%s"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport, *ExportId);
+	CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 	{
 		if (!ErrorMessage.IsEmpty())
 		{
@@ -106,7 +193,8 @@ void FITwinServices::GetExports(FCancelRequest& CancelRequest, std::function<voi
 {
 	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest](FString AuthToken)
 	{
-		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(TEXT("https://api.bentley.com/mesh-export/"), "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+		auto URL = FString::Printf(TEXT("%s/%s/"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport);
+		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 		{
 			if (!ErrorMessage.IsEmpty())
 			{
@@ -125,4 +213,30 @@ void FITwinServices::GetExports(FCancelRequest& CancelRequest, std::function<voi
 			Callback(Exports);
 		});
 	});
+}
+
+void FITwinServices::GetiModelExports(FCancelRequest& CancelRequest, FString iModelId, FString iChangesetId, std::function<void(TArray<FExportInfo> Exports)> Callback)
+{
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest](FString AuthToken)
+		{
+			auto URL = FString::Printf(TEXT("%s/%s/"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport);
+			CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+				{
+					if (!ErrorMessage.IsEmpty())
+					{
+						UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
+						return;
+					}
+
+					auto JsonExports = JsonRoot->GetArrayField("exports");
+					TArray<FExportInfo> Exports;
+					for (const auto JsonExport : JsonExports)
+					{
+						const auto JsonObject = JsonExport->AsObject();
+						FExportInfo Export = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName"), JsonObject->GetStringField("status") };
+						Exports.Push(Export);
+					}
+					Callback(Exports);
+				});
+		});
 }

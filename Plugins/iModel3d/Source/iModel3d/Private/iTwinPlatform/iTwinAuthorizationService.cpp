@@ -38,7 +38,7 @@ struct FAuthorizationCredentials
 	static constexpr auto LocalhostPort = 24363;
 	static constexpr auto RedirectUri = TEXT("http://localhost:24363/authorize");
 	static constexpr auto ClientId = TEXT("unreal-test");
-	static constexpr auto Scope = TEXT("openid imodels:read mesh-export:modify mesh-export:read offline_access");
+	static constexpr auto Scope = TEXT("mesh-export:read mesh-export:modify imodels:read itwins:read imodelaccess:read offline_access");
 };
 
 namespace

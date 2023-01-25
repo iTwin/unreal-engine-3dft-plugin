@@ -17,6 +17,7 @@
 #include "Editor/UnrealEd/Public/EditorViewportClient.h"
 #endif
 
+#include "iTwinPlatform/iTwinServices.h"
 #include "MeshComponentManager/MeshComponentManager.h"
 #include "MeshComponentManager/GraphicOptions.h"
 
@@ -31,6 +32,8 @@ AiModel3d::AiModel3d(const FObjectInitializer& ObjectInitializer) : Super(Object
 	
 	OpaqueMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/SolidMaterial.SolidMaterial'")));
 	TranslucentMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/TranslucentMat.TranslucentMat'")));
+
+	CancelRequest = std::make_shared<FCancelRequest>();
 }
 
 void AiModel3d::InitializeMeshComponentManager()
@@ -203,7 +206,7 @@ FString AiModel3d::GetElementId(uint32_t ElementIndex)
 
 void AiModel3d::LoadModel(FString InExportId)
 {
-	FITwinServices::GetExportAndRefresh(InExportId, CancelRequest, [this](FITwinServices::FExportInfo ExportInfo, bool bRefreshUrl)
+	FITwinServices::GetExportAndRefresh(InExportId, *CancelRequest, [this](FITwinServices::FExportInfo ExportInfo, bool bRefreshUrl)
 	{
 		if (bRefreshUrl)
 		{
