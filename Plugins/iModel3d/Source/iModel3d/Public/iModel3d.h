@@ -67,10 +67,10 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
-		ELoadingMethod LoadingMethod = ELoadingMethod::LM_Automatic;
+		ELoadingMethod LoadingMethod = ELoadingMethod::LM_Manual;
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading", meta = (EditCondition = "LoadingMethod == ELoadingMethod::LM_Automatic"))
-		FString ExportId = "69528456-7b4e-4de1-8049-4777cbefd201";
+		FString ExportId = "";
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
 		float ObjectLoadingSpeed = 1.f;

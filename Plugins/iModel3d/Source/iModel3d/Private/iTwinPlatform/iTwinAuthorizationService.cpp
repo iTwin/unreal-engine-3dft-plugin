@@ -32,12 +32,12 @@
 
 struct FAuthorizationCredentials
 {
-	static constexpr auto Server = TEXT("https://ims.bentley.com");
+	static constexpr auto Server = TEXT("https://qa-ims.bentley.com");
 	static constexpr auto AuthorizationEndpoint = TEXT("/connect/authorize");
 	static constexpr auto TokenEndpoint = TEXT("/connect/token");
 	static constexpr auto LocalhostPort = 24363;
 	static constexpr auto RedirectUri = TEXT("http://localhost:24363/authorize");
-	static constexpr auto ClientId = TEXT("unreal-test");
+	static constexpr auto ClientId = TEXT("native-zHegC9L8FUPe2sXiRqPD8DvSG");
 	static constexpr auto Scope = TEXT("mesh-export:read mesh-export:modify imodels:read itwins:read imodelaccess:read offline_access");
 };
 

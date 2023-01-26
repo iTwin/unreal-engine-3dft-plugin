@@ -14,7 +14,7 @@
 
 struct FiTwinServicesEndPoints
 {
-	static constexpr auto Server = TEXT("https://api.bentley.com");
+	static constexpr auto Server = TEXT("https://dev-api.bentley.com");
 	static constexpr auto MeshExport = TEXT("mesh-export");
 	static constexpr auto iTwins = TEXT("itwins");
 	static constexpr auto iModels = TEXT("imodels");
@@ -96,7 +96,7 @@ void FITwinServices::GetiModelChangesets(FCancelRequest& CancelRequest, FString 
 {
 	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, iModelId](FString AuthToken)
 	{
-		auto URL = FString::Printf(TEXT("%s/%s/%s/changesets?$orderBy=index%20desc"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::iModels, *iModelId);
+		auto URL = FString::Printf(TEXT("%s/%s/%s/changesets?$orderBy=index%%20desc"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::iModels, *iModelId);
 		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 			{
 				if (!ErrorMessage.IsEmpty())
@@ -110,7 +110,7 @@ void FITwinServices::GetiModelChangesets(FCancelRequest& CancelRequest, FString 
 				for (const auto JsonExport : JsonExports)
 				{
 					const auto JsonObject = JsonExport->AsObject();
-					FChangesetInfo Changeset = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName"), JsonObject->GetStringField("description"), JsonObject->GetIntegerField("index") };
+					FChangesetInfo Changeset = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName"), JsonObject->HasField("description") ? JsonObject->GetStringField("description") : "", JsonObject->GetIntegerField("index")};
 					Changesets.Push(Changeset);
 				}
 				Callback(Changesets);
@@ -217,26 +217,31 @@ void FITwinServices::GetExports(FCancelRequest& CancelRequest, std::function<voi
 
 void FITwinServices::GetiModelExports(FCancelRequest& CancelRequest, FString iModelId, FString iChangesetId, std::function<void(TArray<FExportInfo> Exports)> Callback)
 {
-	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest](FString AuthToken)
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, iModelId, iChangesetId](FString AuthToken)
+	{
+		auto URL = FString::Printf(TEXT("%s/%s/?iModelId=%s&changesetId=%s"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport, *iModelId, *iChangesetId);
+		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 		{
-			auto URL = FString::Printf(TEXT("%s/%s/"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport);
-			CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
-				{
-					if (!ErrorMessage.IsEmpty())
-					{
-						UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
-						return;
-					}
+			if (!ErrorMessage.IsEmpty())
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
+				return;
+			}
 
-					auto JsonExports = JsonRoot->GetArrayField("exports");
-					TArray<FExportInfo> Exports;
-					for (const auto JsonExport : JsonExports)
-					{
-						const auto JsonObject = JsonExport->AsObject();
-						FExportInfo Export = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName"), JsonObject->GetStringField("status") };
-						Exports.Push(Export);
-					}
-					Callback(Exports);
-				});
-		});
+			auto JsonExports = JsonRoot->GetArrayField("exports");
+			TArray<FExportInfo> Exports;
+			for (const auto JsonExport : JsonExports)
+			{
+				const auto JsonObject = JsonExport->AsObject();
+
+				auto JsonHref = JsonObject->GetObjectField("request");
+				if (JsonHref && JsonHref->GetStringField(TEXT("exportType")) == "3DFT")
+				{
+					FExportInfo Export = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName"), JsonObject->GetStringField("status") };
+					Exports.Push(Export);
+				}
+			}
+			Callback(Exports);
+			}, "v1", { { "Prefer", "return=representation" } });
+	});
 }

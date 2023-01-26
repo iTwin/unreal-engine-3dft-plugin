@@ -71,7 +71,7 @@ FAPIService::FRequestPtr FAPIService::SendPostRequest(const FString& URL, const 
 	return Request;
 }
 
-FAPIService::FRequestPtr FAPIService::SendGetRequest(const FString& URL, const FString& RequestContent, const FString& AuthToken, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, FString ApiVersion)
+FAPIService::FRequestPtr FAPIService::SendGetRequest(const FString& URL, const FString& RequestContent, const FString& AuthToken, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, FString ApiVersion, TArray<FAPIService::FHttpHeader> Headers)
 {
 	FHttpModule& HttpModule = FHttpModule::Get();
 	FRequestPtr Request = HttpModule.CreateRequest();
@@ -84,8 +84,12 @@ FAPIService::FRequestPtr FAPIService::SendGetRequest(const FString& URL, const F
 	
 	auto Accept = FString::Printf(TEXT("application/vnd.bentley.itwin-platform.%s+json"), *ApiVersion);
 	Request->SetHeader(TEXT("Accept"), Accept);
-	
 
+	for (const auto& Header : Headers)
+	{
+		Request->SetHeader(Header.Title, Header.Content);
+	}
+	
 	Request->SetContentAsString(RequestContent);
 
 	// Set the http URL
