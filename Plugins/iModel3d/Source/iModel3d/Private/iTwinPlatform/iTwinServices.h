@@ -73,5 +73,9 @@ public:
 	static void StartExport(FCancelRequest& CancelRequest, FString iModelId, FString ChangesetId, std::function<void(FString ExportId)> Callback);
 
 	static void AutoExportAndLoad(FCancelRequest& CancelRequest, FString iModelId, FString ChangesetId, std::function<void(FString ExportId)> Callback);
+
+	static void CheckAuthorization(FCancelRequest& CancelRequest, std::function<void(bool bSuccess, FString Error)> Callback);
+
+
 };
 

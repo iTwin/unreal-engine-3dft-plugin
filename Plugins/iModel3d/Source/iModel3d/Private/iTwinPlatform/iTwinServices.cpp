@@ -354,3 +354,18 @@ void FITwinServices::AutoExportAndLoad(FCancelRequest& CancelRequest, FString iM
 		});
 	});
 }
+
+void FITwinServices::CheckAuthorization(FCancelRequest& CancelRequest, std::function<void(bool bSuccess, FString Error)> Callback)
+{
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest](FString AuthToken)
+	{
+		if (AuthToken == "")
+		{
+			Callback(false, FITwinAuthorizationService::Get().GetLastError());
+		}
+		else
+		{
+			Callback(true, "");
+		}
+	});
+}

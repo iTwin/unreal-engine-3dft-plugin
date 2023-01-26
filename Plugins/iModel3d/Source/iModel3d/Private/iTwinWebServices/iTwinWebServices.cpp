@@ -6,6 +6,13 @@ UiTwinWebServices::UiTwinWebServices()
 	CancelRequest = std::make_shared<FCancelRequest>();
 }
 
+void UiTwinWebServices::CheckAuthorization()
+{
+	FITwinServices::CheckAuthorization(*CancelRequest, [this](bool bSuccess, FString Error) {
+		this->OnAuthorizationChecked.Broadcast( bSuccess, Error );
+	});
+}
+
 void UiTwinWebServices::GetiTwins()
 {
 	FITwinServices::GetiTwins(*CancelRequest, [this](auto iTwins) {

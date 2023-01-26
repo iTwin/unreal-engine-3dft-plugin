@@ -5,6 +5,7 @@
 #include "iTwinWebServices_Info.h"
 #include "iTwinWebServices.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAuthorizationChecked, bool, bSuccess, FString, Error);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGetiTwinsComplete, bool, bSuccess, FiTwinInfos, iTwins);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGetiTwiniModelsComplete, bool, bSuccess, FiModelInfos, iModels);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGetiModelChangesetsComplete, bool, bSuccess, FChangesetInfos, Changesets);
@@ -23,6 +24,9 @@ public:
     UiTwinWebServices();
 
     UFUNCTION(BlueprintCallable, Category = "iTwin Web Services")
+        void CheckAuthorization();
+
+    UFUNCTION(BlueprintCallable, Category = "iTwin Web Services")
         void GetiTwins();
 
     UFUNCTION(BlueprintCallable, Category = "iTwin Web Services")
@@ -39,6 +43,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "iTwin Web Services")
         void StartExport(FString iModelId, FString iChangesetId);
+
+    UPROPERTY(BlueprintAssignable, Category = "iTwin Web Services")
+        FOnAuthorizationChecked OnAuthorizationChecked;
 
     UPROPERTY(BlueprintAssignable, Category = "iTwin Web Services")
         FOnGetiTwinsComplete OnGetiTwinsComplete;
