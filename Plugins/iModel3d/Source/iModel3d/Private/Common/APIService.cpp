@@ -42,7 +42,7 @@ void ParseResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bCon
 }
 }
 
-FAPIService::FRequestPtr FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback)
+FAPIService::FRequestPtr FAPIService::SendPostRequest(const FString& URL, const FString& RequestContent, TArray<FAPIService::FHttpHeader> Headers, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback)
 {
 	// Reference code: https://dev.epicgames.com/community/learning/tutorials/ZdXD/call-rest-api-using-http-json-from-ue5-c
 
@@ -52,8 +52,10 @@ FAPIService::FRequestPtr FAPIService::SendPostRequest(const FString& URL, const 
 	// Preparing a POST request
 	Request->SetVerb(TEXT("POST"));
 
-	// We'll need to tell the server what type of content to expect in the POST data
-	Request->SetHeader(TEXT("Content-Type"), TEXT("application/x-www-form-urlencoded"));
+	for (const auto& Header : Headers)
+	{
+		Request->SetHeader(Header.Title, Header.Content);
+	}
 
 	Request->SetContentAsString(RequestContent);
 
@@ -71,19 +73,13 @@ FAPIService::FRequestPtr FAPIService::SendPostRequest(const FString& URL, const 
 	return Request;
 }
 
-FAPIService::FRequestPtr FAPIService::SendGetRequest(const FString& URL, const FString& RequestContent, const FString& AuthToken, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, FString ApiVersion, TArray<FAPIService::FHttpHeader> Headers)
+FAPIService::FRequestPtr FAPIService::SendGetRequest(const FString& URL, const FString& RequestContent, TArray<FAPIService::FHttpHeader> Headers, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback)
 {
 	FHttpModule& HttpModule = FHttpModule::Get();
 	FRequestPtr Request = HttpModule.CreateRequest();
 
 	// Preparing a GET request
 	Request->SetVerb(TEXT("GET"));
-
-	// Set authorization header
-	Request->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *AuthToken));
-	
-	auto Accept = FString::Printf(TEXT("application/vnd.bentley.itwin-platform.%s+json"), *ApiVersion);
-	Request->SetHeader(TEXT("Accept"), Accept);
 
 	for (const auto& Header : Headers)
 	{

@@ -38,7 +38,7 @@ struct FAuthorizationCredentials
 	static constexpr auto LocalhostPort = 24363;
 	static constexpr auto RedirectUri = TEXT("http://localhost:24363/authorize");
 	static constexpr auto ClientId = TEXT("native-zHegC9L8FUPe2sXiRqPD8DvSG");
-	static constexpr auto Scope = TEXT("mesh-export:read mesh-export:modify imodels:read itwins:read imodelaccess:read offline_access");
+	static constexpr auto Scope = TEXT("mesh-export:modify imodelaccess:read imodels:read itwins:read mesh-export:read offline_access");
 };
 
 namespace
@@ -85,7 +85,7 @@ void AuthorizationTokenRequest(FString RequestContent, std::function<void(FStrin
 {
 	auto URL = FString::Printf(TEXT("%s%s"), FAuthorizationCredentials::Server, FAuthorizationCredentials::TokenEndpoint);
 
-	FAPIService::SendPostRequest(URL, RequestContent, [Callback, ErrorCallback](TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
+	FAPIService::SendPostRequest(URL, RequestContent, {{ "Content-Type", "application/x-www-form-urlencoded" }}, [Callback, ErrorCallback](TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
 	{
 		if (!ErrorMessage.IsEmpty())
 		{

@@ -54,3 +54,16 @@ void UiTwinWebServices::GetExports(FString iModelId, FString iChangesetId)
 	});
 }
 
+void UiTwinWebServices::GetExportInfo(FString ExportId)
+{
+	FITwinServices::GetExportInfo(*CancelRequest, ExportId, [this](auto info) {
+		this->OnGetExportInfoComplete.Broadcast(true, { info.Id, info.DisplayName, info.Status, info.iModelId, info.ChangesetId, info.MeshUrl });
+	});
+}
+
+void UiTwinWebServices::StartExport(FString iModelId, FString iChangesetId)
+{
+	FITwinServices::StartExport(*CancelRequest, iModelId, iChangesetId, [this](FString ExportId) {
+		this->OnStartExportComplete.Broadcast(true, ExportId);
+	});
+}

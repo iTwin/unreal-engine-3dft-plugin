@@ -38,6 +38,22 @@ TSharedPtr<FJsonObject> GetChildObject(TSharedPtr<FJsonObject> JsonRoot, FString
 	}
 	return JsonRoot;
 }
+
+FAPIService::FRequestPtr SendGetRequest(const FString& URL, const FString& AuthToken, TArray<FAPIService::FHttpHeader> Headers, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, FString ApiVersion = "v1")
+{
+	Headers.Push({"Authorization", FString::Printf(TEXT("Bearer %s"), *AuthToken)});
+	Headers.Push({ "Accept", FString::Printf(TEXT("application/vnd.bentley.itwin-platform.%s+json"), *ApiVersion) });
+
+	return FAPIService::SendGetRequest(URL, "", Headers, Callback);
+}
+
+FAPIService::FRequestPtr SendPostRequest(const FString& URL, const FString& AuthToken, const FString& RequestContent, TArray<FAPIService::FHttpHeader> Headers, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, FString ApiVersion = "v1")
+{
+	Headers.Push({ "Authorization", FString::Printf(TEXT("Bearer %s"), *AuthToken) });
+	Headers.Push({ "Accept", FString::Printf(TEXT("application/vnd.bentley.itwin-platform.%s+json"), *ApiVersion) });
+
+	return FAPIService::SendPostRequest(URL, RequestContent, Headers, Callback);
+}
 }
 
 void FITwinServices::GetiTwins(FCancelRequest& CancelRequest, std::function<void(TArray<FiTwinInfo> iTwins)> Callback)
@@ -45,7 +61,7 @@ void FITwinServices::GetiTwins(FCancelRequest& CancelRequest, std::function<void
 	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest](FString AuthToken)
 	{
 		auto URL = FString::Printf(TEXT("%s/%s/?subClass=Project&status=Active"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::iTwins);
-		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+		CancelRequest.AutoCancelRequest = SendGetRequest(URL, AuthToken, {}, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 			{
 				if (!ErrorMessage.IsEmpty())
 				{
@@ -71,7 +87,7 @@ void FITwinServices::GetiTwiniModels(FCancelRequest& CancelRequest, FString iTwi
 	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, iTwinId](FString AuthToken)
 	{
 		auto URL = FString::Printf(TEXT("%s/%s/?iTwinId=%s"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::iModels, *iTwinId);
-		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+		CancelRequest.AutoCancelRequest = SendGetRequest(URL, AuthToken, {}, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 		{
 			if (!ErrorMessage.IsEmpty())
 			{
@@ -94,10 +110,10 @@ void FITwinServices::GetiTwiniModels(FCancelRequest& CancelRequest, FString iTwi
 
 void FITwinServices::GetiModelChangesets(FCancelRequest& CancelRequest, FString iModelId, std::function<void(TArray<FChangesetInfo> Changesets)> Callback)
 {
-	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, iModelId](FString AuthToken)
+	auto URL = FString::Printf(TEXT("%s/%s/%s/changesets?$orderBy=index%%20desc"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::iModels, *iModelId);
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, URL](FString AuthToken)
 	{
-		auto URL = FString::Printf(TEXT("%s/%s/%s/changesets?$orderBy=index%%20desc"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::iModels, *iModelId);
-		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+		CancelRequest.AutoCancelRequest = SendGetRequest(URL, AuthToken, {}, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 			{
 				if (!ErrorMessage.IsEmpty())
 				{
@@ -118,10 +134,10 @@ void FITwinServices::GetiModelChangesets(FCancelRequest& CancelRequest, FString 
 	});
 }
 
-void FITwinServices::GetExport(FString ExportId, FString AuthToken, FCancelRequest& CancelRequest, std::function<void(FITwinServices::FExportInfo ExportInfo)> Callback)
+void FITwinServices::GetExport(FString ExportId, FString AuthToken, FCancelRequest& CancelRequest, std::function<void(FExportInfo ExportInfo)> Callback)
 {
 	auto URL = FString::Printf(TEXT("%s/%s/%s"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport, *ExportId);
-	CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+	CancelRequest.AutoCancelRequest = SendGetRequest(URL, AuthToken, {}, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 	{
 		if (!ErrorMessage.IsEmpty())
 		{
@@ -166,6 +182,14 @@ void FITwinServices::GetExport(FString ExportId, FString AuthToken, FCancelReque
 	});
 }
 
+void FITwinServices::GetExportInfo(FCancelRequest& CancelRequest, FString ExportId, std::function<void(FITwinServices::FExportInfo ExportInfo)> Callback)
+{
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, ExportId](FString AuthToken)
+	{
+		GetExport(ExportId, AuthToken, CancelRequest, Callback);
+	});
+}
+
 void FITwinServices::GetExportAndRefresh(FString ExportId, FCancelRequest& CancelRequest, std::function<void(FExportInfo ExportInfo, bool bRefreshUrl)> Callback)
 {
 	CancelRequest.AutoCancelTicker.Reset();
@@ -194,7 +218,7 @@ void FITwinServices::GetExports(FCancelRequest& CancelRequest, std::function<voi
 	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest](FString AuthToken)
 	{
 		auto URL = FString::Printf(TEXT("%s/%s/"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport);
-		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+		CancelRequest.AutoCancelRequest = SendGetRequest(URL, AuthToken, {}, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 		{
 			if (!ErrorMessage.IsEmpty())
 			{
@@ -217,10 +241,10 @@ void FITwinServices::GetExports(FCancelRequest& CancelRequest, std::function<voi
 
 void FITwinServices::GetiModelExports(FCancelRequest& CancelRequest, FString iModelId, FString iChangesetId, std::function<void(TArray<FExportInfo> Exports)> Callback)
 {
-	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, iModelId, iChangesetId](FString AuthToken)
+	auto URL = FString::Printf(TEXT("%s/%s/?iModelId=%s&changesetId=%s"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport, *iModelId, *iChangesetId);
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, URL](FString AuthToken)
 	{
-		auto URL = FString::Printf(TEXT("%s/%s/?iModelId=%s&changesetId=%s"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport, *iModelId, *iChangesetId);
-		CancelRequest.AutoCancelRequest = FAPIService::SendGetRequest(URL, "", AuthToken, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+		CancelRequest.AutoCancelRequest = SendGetRequest(URL, AuthToken, { { "Prefer", "return=representation" } }, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
 		{
 			if (!ErrorMessage.IsEmpty())
 			{
@@ -242,6 +266,41 @@ void FITwinServices::GetiModelExports(FCancelRequest& CancelRequest, FString iMo
 				}
 			}
 			Callback(Exports);
-			}, "v1", { { "Prefer", "return=representation" } });
+			});
+	});
+}
+
+void FITwinServices::StartExport(FCancelRequest& CancelRequest, FString iModelId, FString iChangesetId, std::function<void(FString ExportId)> Callback)
+{
+	auto URL = FString::Printf(TEXT("%s/%s/"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::MeshExport);
+	auto RequestContent = FString::Printf(TEXT("{\"iModelId\":\"%s\",\"changesetId\":\"%s\",\"exportType\":\"3DFT\",\"geometryOptions\":{}}"), *iModelId, *iChangesetId);
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, URL, RequestContent](FString AuthToken)
+	{
+		CancelRequest.AutoCancelRequest = SendPostRequest(URL, AuthToken, RequestContent, {{"Content-Type", "application/json"}}, [Callback](TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
+		{
+			if (!ErrorMessage.IsEmpty())
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
+			}
+			else
+			{
+				if (Response->HasField(TEXT("error")))
+				{
+					UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *Response->GetObjectField("error")->GetStringField("message"));
+				}
+				else
+				{
+					auto JsonExport = Response->GetObjectField("export");
+					if (!JsonExport)
+					{
+						UE_LOG(LogTemp, Error, TEXT("Invalid Reply: Export not defined."));
+					}
+					else
+					{
+						Callback(JsonExport->GetStringField("id"));
+					}
+				}
+			}
+		});
 	});
 }
