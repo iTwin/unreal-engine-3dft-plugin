@@ -14,7 +14,7 @@
 
 struct FiTwinServicesEndPoints
 {
-	static constexpr auto Server = TEXT("https://dev-api.bentley.com");
+	static constexpr auto Server = TEXT("https://api.bentley.com");
 	static constexpr auto MeshExport = TEXT("mesh-export");
 	static constexpr auto iTwins = TEXT("itwins");
 	static constexpr auto iModels = TEXT("imodels");
