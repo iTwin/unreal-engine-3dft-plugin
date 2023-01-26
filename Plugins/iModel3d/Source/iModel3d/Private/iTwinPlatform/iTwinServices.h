@@ -68,11 +68,10 @@ public:
 
 	static void GetExports(FCancelRequest& CancelRequest, std::function<void(TArray<FExportInfo> Exports)> Callback);
 
-	static void GetiModelExports(FCancelRequest& CancelRequest, FString iModelId, FString iChangesetId, std::function<void(TArray<FExportInfo> Exports)> Callback);
+	static void GetiModelExports(FCancelRequest& CancelRequest, FString iModelId, FString ChangesetId, std::function<void(TArray<FExportInfo> Exports)> Callback);
 
-	static void StartExport(FCancelRequest& CancelRequest, FString iModelId, FString iChangesetId, std::function<void(FString ExportId)> Callback);
+	static void StartExport(FCancelRequest& CancelRequest, FString iModelId, FString ChangesetId, std::function<void(FString ExportId)> Callback);
 
-private:
-	static void GetExport(FString ExportId, FString AuthToken, FCancelRequest& CancelRequest, std::function<void(FExportInfo ExportInfo)> Callback);
+	static void AutoExportAndLoad(FCancelRequest& CancelRequest, FString iModelId, FString ChangesetId, std::function<void(FString ExportId)> Callback);
 };
 

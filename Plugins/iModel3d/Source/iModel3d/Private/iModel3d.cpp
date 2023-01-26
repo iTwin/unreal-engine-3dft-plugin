@@ -30,9 +30,9 @@ AiModel3d::AiModel3d(const FObjectInitializer& ObjectInitializer) : Super(Object
 
 	GraphicOptions = MakeShared<FGraphicOptions>();
 	
-	OpaqueMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/SolidMaterial.SolidMaterial'")));
-	TranslucentMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Materials/TranslucentMat.TranslucentMat'")));
-
+	OpaqueMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Picking/SolidMaterial-Picking.SolidMaterial-Picking'")));
+	TranslucentMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel3d/Picking/TranslucentMat-Picking.TranslucentMat-Picking'")));
+	
 	CancelRequest = std::make_shared<FCancelRequest>();
 }
 
@@ -96,11 +96,15 @@ void AiModel3d::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 	UE_LOG(LogTemp, Warning, TEXT("AiModel3d::PostEditChangeProperty()"));
 	Super::PostEditChangeProperty(e);
 	FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
-	if (PropertyName == "ExportId")
+	if (PropertyName == "iModelId" || PropertyName == "ChangesetId")
 	{
-		if (LoadingMethod == ELoadingMethod::LM_Automatic && !ExportId.IsEmpty())
+		if (LoadingMethod == ELoadingMethod::LM_Manual && !ExportId.IsEmpty())
 		{
 			LoadModel(ExportId);
+		}
+		else if (LoadingMethod == ELoadingMethod::LM_Automatic && !iModelId.IsEmpty() && !ChangesetId.IsEmpty())
+		{
+			LoadiModelChangeset();
 		}
 	}
 }
@@ -120,9 +124,13 @@ void AiModel3d::Tick(float DeltaTime)
 	if (!bTickCalled)
 	{
 		bTickCalled = true;
-		if (LoadingMethod == ELoadingMethod::LM_Automatic && !ExportId.IsEmpty())
+		if (LoadingMethod == ELoadingMethod::LM_Manual && !ExportId.IsEmpty())
 		{
 			LoadModel(ExportId);
+		}
+		else if (LoadingMethod == ELoadingMethod::LM_Automatic && !iModelId.IsEmpty() && !ChangesetId.IsEmpty())
+		{
+			LoadiModelChangeset();
 		}
 	}
 
@@ -189,18 +197,25 @@ void AiModel3d::GetStatusInfo(FString& Status, float& Percentage)
 
 FString AiModel3d::GetElementId(uint32_t ElementIndex)
 {
-	auto ElementId = MeshComponentManager->GetElementId(ElementIndex);
-	if (ElementId == uint64_t(-1))
+	if (!MeshComponentManager)
 	{
 		return FString("");
 	}
-	if ((ElementId >> 32) > 0)
-	{
-		return FString::Printf(TEXT("0x%x%08x"), (ElementId >> 32), ElementId & 0xffffffff);
-	}
 	else
 	{
-		return FString::Printf(TEXT("0x%x"), ElementId);
+		auto ElementId = MeshComponentManager->GetElementId(ElementIndex);
+		if (ElementId == uint64_t(-1))
+		{
+			return FString("");
+		}
+		if ((ElementId >> 32) > 0)
+		{
+			return FString::Printf(TEXT("0x%x%08x"), (ElementId >> 32), ElementId & 0xffffffff);
+		}
+		else
+		{
+			return FString::Printf(TEXT("0x%x"), ElementId);
+		}
 	}
 }
 
@@ -230,6 +245,21 @@ void AiModel3d::LoadModel(FString InExportId)
 void AiModel3d::Reset()
 {
 	DeinitializeMeshComponentManager();
+}
+
+void AiModel3d::LoadiModelChangeset()
+{
+	FITwinServices::AutoExportAndLoad(*CancelRequest, iModelId, ChangesetId, [this](auto ExportId)
+	{
+		if (ExportId  == "")
+		{
+			UE_LOG(LogTemp, Error, TEXT("Processing in progress!"));
+		}
+		else
+		{
+			return LoadModel(ExportId);
+		}
+	});
 }
 
 /* To be implemented in the future

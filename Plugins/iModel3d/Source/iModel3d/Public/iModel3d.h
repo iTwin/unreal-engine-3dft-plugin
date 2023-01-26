@@ -69,8 +69,14 @@ private:
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
 		ELoadingMethod LoadingMethod = ELoadingMethod::LM_Manual;
 
-	UPROPERTY(EditAnywhere, Category = "iModel|Loading", meta = (EditCondition = "LoadingMethod == ELoadingMethod::LM_Automatic"))
+	UPROPERTY(EditAnywhere, Category = "iModel|Loading", meta = (EditCondition = "LoadingMethod == ELoadingMethod::LM_Manual"))
 		FString ExportId = "";
+
+	UPROPERTY(EditAnywhere, Category = "iModel|Loading", meta = (EditCondition = "LoadingMethod == ELoadingMethod::LM_Automatic"))
+		FString iModelId = "";
+
+	UPROPERTY(EditAnywhere, Category = "iModel|Loading", meta = (EditCondition = "LoadingMethod == ELoadingMethod::LM_Automatic"))
+		FString ChangesetId = "";
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
 		float ObjectLoadingSpeed = 1.f;
@@ -147,4 +153,6 @@ private:
 	bool IsInEditor() const;
 	void InitializeMeshComponentManager();
 	void DeinitializeMeshComponentManager();
+	void LoadiModelChangeset();
+
 };
