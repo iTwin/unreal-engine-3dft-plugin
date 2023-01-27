@@ -1,51 +1,32 @@
-# Unreal Engine 3DFT Plugin
+# iTwin 3DFT Plugin for Unreal Engine
+
+This repository contains the Unreal Engine 3DFT plugin for viewing iModels streamed directly from the iTwin Platform.
+It also includes sample projects that demonstrate how to use the plugin and how to connect to various APIs of the iTwin platform.
 
 ## License
 
 This repository is licensed under an [Apache license](./LICENSE.md), except for the iTwin 3DFT native library which is licensed under a [BENTLEY RIGHT-TO-RUN AUTHORIZATION](./Plugins/iModel3d/ThirdParty/iModelDecoder/LICENSE.md) license.
 
-## Tech Preview
+<br/>
 
-This project is a Technical Preview and is available for testing purposes only. **Do not use in production**.
+## **Warning: Tech Preview**
 
-You can get more information about the state of the plugin and the iTwin Export Mesh Service [here](https://developer.bentley.com/apis/mesh-export/operations/get-export/).
+This project is a *Technical Preview* and is available for testing purposes only. **Do not use in production**.
+
+You can get more information about the state of the plugin and the iTwin Mesh Export Service [here](https://developer.bentley.com/apis/mesh-export/operations/get-export/).
 
 </br>
 
-## Table of contents
+# Table of contents
 
-1. [Technology overview](#technology-overview)
-2. [Pre-requisites](#pre-requisites)
-3. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
-4. [Create an iModel](#create-an-imodel)
+1. [Pre-requisites](#pre-requisites)
+2. [Usage](#usage)
+3. [Samples](#samples)
+4. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
 5. [Plugin description](#plugin-description)
+6. [Technology overview](#technology-overview)
 
 </br>
-
-## Technology Overview
-
-Engineers are sitting on some incredible models that are too complicated to render in real-time using traditional methods.
-
-3DFT (**3D** **F**ast **T**ransmission) is a new rendering codec that rapidly optimizes/compresses large 3D models for high Unreal Engine framerates, without data loss.
-
-Aimed to achieve the ”4 F’s” (fast encoding, fast transmission, fast decoding, fast rendering) 3DFT defines encoding and decoding methods, a persistence format and a rendering architecture.
-
-3DFT is a fundamental part of [The Bentley iTwin platform](https://www.bentley.com/software/itwin-platform/), a collection of APIs and services designed to help you build digital twin applications and bring them to market quickly. It provides the foundation for building SaaS solutions to design, build, and operate infrastructure assets. Accelerate application development by letting the iTwin platform handle data integration, visualization, change tracking, security, and other complex challenges. Whether you are building SaaS solutions for your clients advancing their digital twin initiatives, or implementing bespoke solutions in your organization, this is the platform for you.
-
-3DFT streams the 3d models stored in the iTwin platform to Unreal Engine directly, without the need to export/import them. The data streaming optimizes the transmission of data so only a fraction of the size of the model is transmitted, instead of exporting/importing the whole model.
-
-![3DFT data flow](docs/3dft_dataflow_overview.png)
-
-<br/>
-<br/>
-
-If you want to learn more, click of the image to watch the session about 3DFT that we did at the Unreal Fest 2022.
-
-<br/>
-
-[![3DFT at Unreal Fest](https://img.youtube.com/vi/Iag2lJj82m4/0.jpg)](https://www.youtube.com/watch?v=Iag2lJj82m4)
-
-<br/>
 
 ## Pre-requisites
 
@@ -77,7 +58,77 @@ Please, follow the url links to get detailed instructions on how to install the 
 
 </br>
 
-## Compile the project manually and debug it
+## Usage
+
+1. Create and configure your iTwin Platform account.
+
+    a) Go to the [iTwin Platform developer portal](https://developer.bentley.com/) and create an account.
+
+    b) Go to [My Models](https://developer.bentley.com/my-imodels/) and create a new iModel.
+
+    c) Go to [My Apps](https://developer.bentley.com/my-apps/) and register a new iTwin App:
+      - Application type: Desktop / Mobile
+      - Redirect URIs: http://localhost:24363/authorize
+      - Scopes: `imodelaccess:read mesh-export:modify itwins:read mesh-export:read imodels:read`
+
+2. Configure your iTwin *App ID* in the plugin:
+
+    `\Plugins\iModel3d\Source\iModel3d\Private\iTwinPlatform\iTwinAuthorizationService.cpp`
+
+    ```
+    static constexpr auto iTwinAppId = TEXT("your_app_id_goes_here");
+    ```
+
+2. Open the sample *iModel* project located in the root folder of this repository (UE should automatically compile the plugin).
+
+3. Explore the sample levels *iTwinLoader* and *SimpleiModel* to see the plugin in action.
+
+4. To use the plugin in your own projects, simply copy & paste the plugin in your projects and add the actor(s) provided by the plugin to your levels as shown in the sample levels.
+
+5. Configure the actor(s) settings and the level blueprints to suit your needs.
+
+<br/>
+
+### Login and Access Authorization
+
+
+Bentley iTwin APIs and SDKs require the end user to give consent to your application to retrieve and use data on user's behalf.
+
+The plugin will automatically open a browser window to let the user login to the iTwin platform and authorize the plugin to access his data.
+
+![Generate VS project files](docs/authorization.png)
+
+When the user accepts, the plugin automatically connects to the iTwin server, so the user can now close the browser window.
+
+<br/>
+
+### Model optimization
+
+When the selected Model is opened for the first time, the 3D model is optimized so that it can be viewed at high speed.
+
+![Generate VS project files](docs/processing.png)
+
+The next time any user opens it, it will already have been optimized and will open very quickly.
+
+![Generate VS project files](docs/stadium.jpg)
+
+
+<br/>
+
+## Samples
+
+### iTwinLoader
+
+This sample demonstrates how to list your iTwins/iModels/Changesets and open them dynamically.
+
+![Generate VS project files](docs/itwin_selector.png)
+
+### SimpleiModel
+
+
+<br/>
+
+## Compile the project and debug it manually
 
 ### Mac
 
@@ -103,52 +154,6 @@ You can generate the XCode project files from a terminal using a script provided
 3. Use the **Debug** command to run and debug the project. It will automatically run the Unreal Editor with your project loaded.
 
 4. Find more information about compiling game projects [here](https://docs.unrealengine.com/5.0/en-US/compiling-game-projects-in-unreal-engine-using-cplusplus/).
-
-<br/>
-
-## Create an iModel
-
-If you want to create an iModel for the first time and visualize it in your plugin, follow these steps:
-
-1. Go to the [iTwin Platform developer portal](https://developer.bentley.com/) and create an account.
-
-2. Go to [my models](https://developer.bentley.com/my-imodels/) and create a new iModel.
-
-3. There are several sample iModels that you can use to start playing with the platform. Just create a new iModel, select "Bentley Sample" and choose one of the sample projects.
-
-4. Visualize your model in the platform to make sure that your model has been created correctly.
-
-5. Check the Url of your project to get the parameters **iModelId** and **ChangeSetId**.
-For example, you will see a url with this structure:
-
-    https://connect-imodelweb.bentley.com/imodeljs/?projectId=00000000-1111-2222-3333-44444444&iModelId=55555555-6666-7777-8888-99999999&ChangeSetId=abcdefghijklmnopqrstuvwyz012345678
-
-    In this case, iModelId is *55555555-6666-7777-8888-99999999* and ChangeSetId is *abcdefghijklmnopqrstuvwyz012345678*.
-
-6. We're going to use the [Mesh Export API](https://developer.bentley.com/apis/mesh-export/) service to convert the iModel to 3DFT.
-
-    1. Go to the [Start Export](https://developer.bentley.com/apis/mesh-export/) page and click on the **Try it out** button.
-
-    2. Click on the dropdown **No auth** and select authorizationCode.
-
-    3. In the **Body** edit box, modify the values of the following parameters:
-        - "iModelId": substitute the identifier with the **iModelId** value from the Url that you have previously copied.
-        - "changesetId": substitute the identifier with the **ChangeSetId** value from the Url that you have previously copied.
-        - "exportType": substitute GLTF for **3DFT**.
-
-    4. Press the **Execute** button.
-
-    5. This will start the export process and generate an **HTTP response** with the id of the export (**ExportId**).
-
-        ![Http response](docs/mesh_export_api_http_response.png)
-
-    6. You can check the state of the export using the [Get Export Service](https://developer.bentley.com/apis/mesh-export/operations/get-export/) (Try it out > No auth > configure **id** > Execute).
-
-<br/>
-
-7. Open one of the samples and paste the **ExportId** into the **ExportId** property of the **iModel** actor.
-
-    ![Paste Url](docs/plugin_sample_paste_url.png)
 
 <br/>
 
@@ -192,3 +197,30 @@ Several properties to improve and optimize several aspects of the plugin.
 We can beautify the iModel by modifying the original colors and individual elements.
 
 ![Options_3](docs/plugin_options_overrides.png)
+
+<br/>
+
+## Technology Overview
+
+Engineers are sitting on some incredible models that are too complicated to render in real-time using traditional methods.
+
+3DFT (**3D** **F**ast **T**ransmission) is a new rendering codec that rapidly optimizes/compresses large 3D models for high Unreal Engine framerates, without data loss.
+
+Aimed to achieve the ”4 F’s” (fast encoding, fast transmission, fast decoding, fast rendering) 3DFT defines encoding and decoding methods, a persistence format and a rendering architecture.
+
+3DFT is part of [The Bentley iTwin platform](https://www.bentley.com/software/itwin-platform/), a collection of APIs and services designed to help you build digital twin applications and bring them to market quickly. It provides the foundation for building SaaS solutions to design, build, and operate infrastructure assets. Accelerate application development by letting the iTwin platform handle data integration, visualization, change tracking, security, and other complex challenges. Whether you are building SaaS solutions for your clients advancing their digital twin initiatives, or implementing bespoke solutions in your organization, this is the platform for you.
+
+3DFT streams the 3d models stored in the iTwin platform to Unreal Engine directly, without the need to export/import them. The data streaming optimizes the transmission of data so only a fraction of the size of the model is transmitted, instead of exporting/importing the whole model.
+
+![3DFT data flow](docs/3dft_dataflow_overview.png)
+
+<br/>
+<br/>
+
+If you want to learn more, click of the image to watch the session about 3DFT that we did at the Unreal Fest 2022.
+
+<br/>
+
+[![3DFT at Unreal Fest](https://img.youtube.com/vi/Iag2lJj82m4/0.jpg)](https://www.youtube.com/watch?v=Iag2lJj82m4)
+
+<br/>
