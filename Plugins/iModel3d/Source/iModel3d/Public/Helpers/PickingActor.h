@@ -33,10 +33,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-		void PickObjectAtMousePosition(FString& Id, FVector2D& MousePosition);
-
-	UPROPERTY(EditInstanceOnly)
-		AiModel3d* iModel3d;
+		void PickObjectAtMousePosition(FString& Id, FVector2D& MousePosition, AiModel3d* iModel3d);
 
 	UPROPERTY(EditInstanceOnly)
 		UTextureRenderTarget2D* PickingTextureRenderTarget2D;

@@ -37,8 +37,8 @@ struct FAuthorizationCredentials
 	static constexpr auto TokenEndpoint = TEXT("/connect/token");
 	static constexpr auto LocalhostPort = 24363;
 	static constexpr auto RedirectUri = TEXT("http://localhost:24363/authorize");
-	static constexpr auto ClientId = TEXT("unreal-test");
-	static constexpr auto Scope = TEXT("openid imodels:read mesh-export:modify mesh-export:read offline_access");
+	static constexpr auto iTwinAppId = TEXT("");
+	static constexpr auto Scope = TEXT("mesh-export:modify imodelaccess:read imodels:read itwins:read mesh-export:read offline_access");
 };
 
 namespace
@@ -68,7 +68,7 @@ FString LaunchWebBrowser(const FString& State, const FString &CodeVerifier)
 
 	auto Params = FString::Printf(
 		TEXT("redirect_uri=%s&client_id=%s&response_type=code&state=%s&scope=%s&code_challenge=%s&code_challenge_method=S256"),
-		*RedirectUri, FAuthorizationCredentials::ClientId, *State, *Scope, *CodeChallenge);
+		*RedirectUri, FAuthorizationCredentials::iTwinAppId, *State, *Scope, *CodeChallenge);
 
 	auto LaunchURL = FString::Printf(TEXT("%s%s?%s"), FAuthorizationCredentials::Server, FAuthorizationCredentials::AuthorizationEndpoint, *Params);
 
@@ -85,7 +85,7 @@ void AuthorizationTokenRequest(FString RequestContent, std::function<void(FStrin
 {
 	auto URL = FString::Printf(TEXT("%s%s"), FAuthorizationCredentials::Server, FAuthorizationCredentials::TokenEndpoint);
 
-	FAPIService::SendPostRequest(URL, RequestContent, [Callback, ErrorCallback](TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
+	FAPIService::SendPostRequest(URL, RequestContent, {{ "Content-Type", "application/x-www-form-urlencoded" }}, [Callback, ErrorCallback](TSharedPtr<FJsonObject> Response, const FString& ErrorMessage)
 	{
 		if (!ErrorMessage.IsEmpty())
 		{
@@ -148,27 +148,36 @@ FString FITwinAuthorizationService::GetLastError()
 
 FTSTicker::FDelegateHandle FITwinAuthorizationService::GetAuthTokenAsync(std::function<void(FString AuthToken)> Callback)
 {
-	auto Token = GetAuthToken();
-	if (!Token.IsEmpty())
+	if (FString(FAuthorizationCredentials::iTwinAppId) == "")
 	{
-		Callback(Token);
+		UpdateError("The iTwin App ID is missing. Please refer to the plugin documentation.");
+		Callback("");
 		return {};
 	}
 	else
 	{
-		return FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this, Callback](float Delta) -> bool
+		auto Token = GetAuthToken();
+		if (!Token.IsEmpty())
 		{
-			auto Token = GetAuthToken();
-			if (!Token.IsEmpty())
+			Callback(Token);
+			return {};
+		}
+		else
+		{
+			return FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this, Callback](float Delta) -> bool
 			{
-				Callback(Token);
-				return false;
-			}
-			else
-			{
-				return true; // Continue ticking
-			}
-		}), 0.200); // 200ms
+				auto Token = GetAuthToken();
+				if (!Token.IsEmpty())
+				{
+					Callback(Token);
+					return false;
+				}
+				else
+				{
+					return true; // Continue ticking
+				}
+			}), 0.200); // 200ms
+		}
 	}
 }
 
@@ -256,7 +265,7 @@ void FITwinAuthorizationService::GetAuthorizationToken()
 {
 	FString RequestContent = 
 		FString::Printf(TEXT("grant_type=authorization_code&client_id=%s&redirect_uri=%s&code=%s&code_verifier=%s&scope=%s"),
-			FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *Authorization.AuthorizationCode, *Authorization.CodeVerifier, FAuthorizationCredentials::Scope);
+			FAuthorizationCredentials::iTwinAppId, FAuthorizationCredentials::RedirectUri, *Authorization.AuthorizationCode, *Authorization.CodeVerifier, FAuthorizationCredentials::Scope);
 
 	AuthorizationTokenRequest(RequestContent, [this](FString NewAuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
 		Authorization.RefreshToken = RefreshToken;
@@ -273,7 +282,7 @@ void FITwinAuthorizationService::DelayRefreshAuthorizationToken()
 	{
 		FString RequestContent =
 			FString::Printf(TEXT("grant_type=refresh_token&client_id=%s&redirect_uri=%s&refresh_token=%s&code=%s&code_verifier=%s&scope=%s"),
-				FAuthorizationCredentials::ClientId, FAuthorizationCredentials::RedirectUri, *Authorization.RefreshToken, *Authorization.AuthorizationCode, *Authorization.CodeVerifier, FAuthorizationCredentials::Scope);
+				FAuthorizationCredentials::iTwinAppId, FAuthorizationCredentials::RedirectUri, *Authorization.RefreshToken, *Authorization.AuthorizationCode, *Authorization.CodeVerifier, FAuthorizationCredentials::Scope);
 
 		AuthorizationTokenRequest(RequestContent, [this](FString NewAuthToken, FString ExpiresIn, FString RefreshToken, FString IdToken) {
 			Authorization.RefreshToken = RefreshToken;

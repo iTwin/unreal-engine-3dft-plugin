@@ -44,8 +44,13 @@ void APickingActor::Tick(float DeltaTime)
 
 /// Picking
 
-void APickingActor::PickObjectAtMousePosition(FString& ElementId, FVector2D& MousePosition)
+void APickingActor::PickObjectAtMousePosition(FString& ElementId, FVector2D& MousePosition, AiModel3d* iModel3d)
 {
+	if (!iModel3d)
+	{
+		return;
+	}
+
 	// 1. Acquire mouse position
 	GetWorld()->GetGameViewport()->GetMousePosition(MousePosition);
 

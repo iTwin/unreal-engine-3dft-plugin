@@ -1,0 +1,16 @@
+# This is the CODEOWNERS file for this repository.
+# This file specifies who should review code changes before they are merged.
+#
+# To request a review, please create a pull request and @mention the code owner(s) in the pull request description.
+# Code owner(s) will review the code and provide feedback or approve the changes for merge.
+#
+# Coding standards:
+#  - Follow the Unreal Engine code style guide
+#  - Add comments when necessary
+#
+# Contact the code owner for any questions or issues:
+#  - Email: daniel.iborra@bentley.com
+#
+# If the code owner changes, please update this file accordingly.
+
+*daniel.iborra@bentley.com

@@ -9,12 +9,12 @@
 
 #include "MaterialOverride.h"
 #include "ElementInfo.h"
-#include "iTwinPlatform/iTwinServices.h"
 
 #include "iModel3d.generated.h"
 
 class FMeshComponentManager;
 struct FGraphicOptions;
+struct FCancelRequest;
 
 UENUM(BlueprintType)
 enum class EGeometryQuality : uint8
@@ -67,10 +67,16 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
-		ELoadingMethod LoadingMethod = ELoadingMethod::LM_Automatic;
+		ELoadingMethod LoadingMethod = ELoadingMethod::LM_Manual;
+
+	UPROPERTY(EditAnywhere, Category = "iModel|Loading", meta = (EditCondition = "LoadingMethod == ELoadingMethod::LM_Manual"))
+		FString ExportId = "";
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading", meta = (EditCondition = "LoadingMethod == ELoadingMethod::LM_Automatic"))
-		FString ExportId = "69528456-7b4e-4de1-8049-4777cbefd201";
+		FString iModelId = "";
+
+	UPROPERTY(EditAnywhere, Category = "iModel|Loading", meta = (EditCondition = "LoadingMethod == ELoadingMethod::LM_Automatic"))
+		FString ChangesetId = "";
 
 	UPROPERTY(EditAnywhere, Category = "iModel|Loading")
 		float ObjectLoadingSpeed = 1.f;
@@ -142,9 +148,11 @@ private:
 	bool bMeshComponentManagerInitialized = false;
 	bool bTickCalled = false;
 
-	FITwinServices::FCancelRequest CancelRequest;
+	std::shared_ptr<FCancelRequest> CancelRequest;
 
 	bool IsInEditor() const;
 	void InitializeMeshComponentManager();
 	void DeinitializeMeshComponentManager();
+	void LoadiModelChangeset();
+
 };
