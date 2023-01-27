@@ -53,7 +53,7 @@ END OF TERMS AND CONDITIONS
 
 APPENDIX: How to apply the Apache License to your work
 
-Copyright © 2022 Bentley Systems, Incorporated. All rights reserved.
+Copyright © 2022-2023 Bentley Systems, Incorporated. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
