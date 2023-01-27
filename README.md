@@ -23,7 +23,7 @@ You can get more information about the state of the plugin and the iTwin Mesh Ex
 2. [Usage](#usage)
 3. [Samples](#samples)
 4. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
-5. [Plugin description](#plugin-description)
+5. [iModel Actor Properties](#imodel-actor-properties)
 6. [Technology overview](#technology-overview)
 
 </br>
@@ -125,6 +125,14 @@ This sample demonstrates how to list your iTwins/iModels/Changesets and open the
 
 ### SimpleiModel
 
+This sample demonstrates how to load a specific iModel directly into the scene.
+
+For that, the iModelId and ChangesetId has to be set.
+
+The plugin will automatically optimize the model if necessary before loading it.
+
+![Generate VS project files](docs/imodel_configuration.png)
+
 
 <br/>
 
@@ -157,46 +165,38 @@ You can generate the XCode project files from a terminal using a script provided
 
 <br/>
 
-## Plugin Description
+## iModel Actor Properties
 
-### Loading
+- Loading
+    - Loading Method:
+        - Automatic: this method will automatically optimize if necessary and load the specific iModel/Changeset.
+        - Manual: this method will load the specific export.
+    - Object Loading Speed: defines the speed of creation of meshes. Big values produce drops on the framerate.
+    - Requests in Parallel: defines the number of tiles that are downloaded in parallel.
+    - Use Disk Cache: check this to let Unreal cache the downloaded parts of the iModel. This will speed-up the loading of the iModel the next time you visualize it.
 
-There are two loading methods: automatic and manual.
-- Automatic: set the **ExportId** of the iModel and it will be automatically loaded.
-- Manual: use blueprints to set the **ExportId**.
+- Render Materials
+    - Opaque material: you can select your own materials to expand the capabilities of the renderer models.
+    - Translucent material: the same but for translucent materials.
 
-![Options_0](docs/plugin_loading.png)
+- Optimization
+    - Max Triangles per batch: defines the maxium number of triangles that a mesh can have.
+    - Shadow Distance Culling: after this distance, objects don't have shadows (improves rendering optimization)
 
-With the other 3 properties, you can configure how the model is loaded:
-- Use Disk Cache: check this to let Unreal cache the downloaded parts of the iModel. This will speed-up the loading of the iModel the next time you visualize it.
-- Object Loading Speed: defines the speed of creation of meshes. Big values produce drops on the framerate.
-- Requests in Parallel: defines the number of tiles that are downloaded in parallel.
+- Geometry quality
+    - Near Range: defines the geometry density of the near range objects.
+    - Far Range: defines the geometry density of the far range objects.
 
-### Render Materials
+- Elements
+    - Element infos: Manual configuration of elements to change their visibility, offset position and pixel offset.
 
-Define the materials that will be used to render the iModel.
-
-There are 2 materials provided by default:
-
-![Options_1](docs/plugin_options_render_materials.png)
-
-We can create and use our own materials to expand the capabilities of the renderer models.
-
-For example, we have created 2 materials that allows the user to select and high-light individual elements:
-
-![Options_1_b](docs/plugin_options_render_materials_2.png)
-
-### Optimization
-
-Several properties to improve and optimize several aspects of the plugin.
-
-![Options_2](docs/plugin_options_optimization.png)
-
-### Elements and Material Overrides
-
-We can beautify the iModel by modifying the original colors and individual elements.
-
-![Options_3](docs/plugin_options_overrides.png)
+- Material Overrides
+    - Material Overrides: change the visual aspect of a material.
+    - Override Materials: activate the material overrides
+    - Hide Translucent Materials: do not render translucent objects
+    - Ignore Translucency: render all objects as opaque
+    - Debug RGB: activate the "debug" mode
+    - Default Material: changes the aspect of all the objects in general.
 
 <br/>
 
