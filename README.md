@@ -123,6 +123,10 @@ This sample demonstrates how to list your iTwins/iModels/Changesets and open the
 
 ![Generate VS project files](docs/itwin_selector.png)
 
+Users can also click on elements to query its unique value.
+
+![Generate VS project files](docs/picking.png)
+
 ### SimpleiModel
 
 This sample demonstrates how to load a specific iModel directly into the scene.
