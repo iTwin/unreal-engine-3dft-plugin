@@ -1,5 +1,9 @@
 # Unreal Engine 3DFT Plugin
 
+## License
+
+This repository is licensed under an [Apache license](./LICENSE.md), except for the iTwin 3DFT native library which is licensed under a [BENTLEY RIGHT-TO-RUN AUTHORIZATION](./Plugins/iModel3d/ThirdParty/iModelDecoder/LICENSE.md) license.
+
 ## Tech Preview
 
 This project is a Technical Preview and is available for testing purposes only. **Do not use in production**.
@@ -118,7 +122,7 @@ If you want to create an iModel for the first time and visualize it in your plug
 For example, you will see a url with this structure:
 
     https://connect-imodelweb.bentley.com/imodeljs/?projectId=00000000-1111-2222-3333-44444444&iModelId=55555555-6666-7777-8888-99999999&ChangeSetId=abcdefghijklmnopqrstuvwyz012345678
-    
+
     In this case, iModelId is *55555555-6666-7777-8888-99999999* and ChangeSetId is *abcdefghijklmnopqrstuvwyz012345678*.
 
 6. We're going to use the [Mesh Export API](https://developer.bentley.com/apis/mesh-export/) service to convert the iModel to 3DFT.
@@ -131,11 +135,11 @@ For example, you will see a url with this structure:
         - "iModelId": substitute the identifier with the **iModelId** value from the Url that you have previously copied.
         - "changesetId": substitute the identifier with the **ChangeSetId** value from the Url that you have previously copied.
         - "exportType": substitute GLTF for **3DFT**.
-    
+
     4. Press the **Execute** button.
 
     5. This will start the export process and generate an **HTTP response** with the id of the export (**ExportId**).
-    
+
         ![Http response](docs/mesh_export_api_http_response.png)
 
     6. You can check the state of the export using the [Get Export Service](https://developer.bentley.com/apis/mesh-export/operations/get-export/) (Try it out > No auth > configure **id** > Execute).
