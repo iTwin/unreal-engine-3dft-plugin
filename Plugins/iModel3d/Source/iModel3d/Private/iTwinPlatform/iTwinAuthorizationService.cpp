@@ -37,7 +37,7 @@ struct FAuthorizationCredentials
 	static constexpr auto TokenEndpoint = TEXT("/connect/token");
 	static constexpr auto LocalhostPort = 24363;
 	static constexpr auto RedirectUri = TEXT("http://localhost:24363/authorize");
-	static constexpr auto iTwinAppId = TEXT("unreal-test");
+	static constexpr auto iTwinAppId = TEXT("");
 	static constexpr auto Scope = TEXT("mesh-export:modify imodelaccess:read imodels:read itwins:read mesh-export:read offline_access");
 };
 
