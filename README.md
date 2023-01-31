@@ -62,11 +62,11 @@ Please, follow the url links to get detailed instructions on how to install the 
 
 1. Create and configure your iTwin Platform account.
 
-    a) Go to the [iTwin Platform developer portal](https://developer.bentley.com/) and create an account. You can follow [these instructions](https://developer.bentley.com/tutorials/quickstart-web-and-service-apps/#12-register-your-application). 
+    a) Go to the [iTwin Platform developer portal](https://developer.bentley.com/) and create an account.
 
     b) Go to [My Models](https://developer.bentley.com/my-imodels/) and create a new iModel.
 
-    c) Go to [My Apps](https://developer.bentley.com/my-apps/) and register a new iTwin App:
+    c) Go to [My Apps](https://developer.bentley.com/my-apps/) and [register a new iTwin App](https://developer.bentley.com/tutorials/quickstart-web-and-service-apps/#12-register-your-application):
       - Application type: Desktop / Mobile
       - Redirect URIs: http://localhost:24363/authorize
       - Scopes: `imodelaccess:read mesh-export:modify itwins:read mesh-export:read imodels:read`
