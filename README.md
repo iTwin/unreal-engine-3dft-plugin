@@ -62,7 +62,7 @@ Please, follow the url links to get detailed instructions on how to install the 
 
 1. Create and configure your iTwin Platform account.
 
-    a) Go to the [iTwin Platform developer portal](https://developer.bentley.com/) and create an account.
+    a) Go to the [iTwin Platform developer portal](https://developer.bentley.com/) and create an account. You can [these instructions](https://developer.bentley.com/tutorials/quickstart-web-and-service-apps/#12-register-your-application). 
 
     b) Go to [My Models](https://developer.bentley.com/my-imodels/) and create a new iModel.
 
