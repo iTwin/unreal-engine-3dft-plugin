@@ -1,0 +1,20 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.0",
+	"Category": "Digital Twins",
+	"CreatedBy": "Bentley Systems",
+	"CreatedByURL": "https://www.bentley.com/",
+	"DocsURL": "https://github.com/iTwin/unreal-engine-3dft-plugin/README.md",
+	"Description": "iTwin 3DFT Plugin sample project",
+	"Modules": [
+		{
+			"Name": "iTwinExample",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"iTwin"
+			]
+		}
+	]
+}

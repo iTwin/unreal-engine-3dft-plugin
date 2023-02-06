@@ -5,7 +5,7 @@ It also includes sample projects that demonstrate how to use the plugin and how 
 
 ## License
 
-This repository is licensed under an [Apache license](./LICENSE.md), except for the iTwin 3DFT native library which is licensed under a [BENTLEY RIGHT-TO-RUN AUTHORIZATION](./Plugins/iModel3d/ThirdParty/iModelDecoder/LICENSE.md) license.
+This repository is licensed under an [Apache license](./LICENSE.md), except for the iTwin 3DFT native library which is licensed under a [BENTLEY RIGHT-TO-RUN AUTHORIZATION](./Plugins/iTwin/ThirdParty/iModelDecoder/LICENSE.md) license.
 
 <br/>
 
@@ -73,15 +73,15 @@ Please, follow the url links to get detailed instructions on how to install the 
 
 2. Configure your iTwin *App ID* in the plugin:
 
-    `\Plugins\iModel3d\Source\iModel3d\Private\iTwinPlatform\iTwinAuthorizationService.cpp`
+    `\Plugins\iTwin\Source\iTwin\Private\iTwinPlatform\iTwinAuthorizationService.cpp`
 
     ```
     static constexpr auto iTwinAppId = TEXT("your_app_id_goes_here");
     ```
 
-2. Open the sample *iModel* project located in the root folder of this repository (UE should automatically compile the plugin).
+2. Open the sample *iTwinExample* project located in the root folder of this repository (UE should automatically compile the plugin).
 
-3. Explore the sample levels *iTwinLoader* and *SimpleiModel* to see the plugin in action.
+3. Explore the sample levels *iModel-Selection-Menu* and *Manual-iModel-Placement* to see the plugin in action.
 
 4. To use the plugin in your own projects, simply copy & paste the plugin in your projects and add the actor(s) provided by the plugin to your levels as shown in the sample levels.
 
@@ -117,7 +117,7 @@ The next time any user opens it, it will already have been optimized and will op
 
 ## Samples
 
-### iTwinLoader
+### iModel-Selection-Menu
 
 This sample demonstrates how to list your iTwins/iModels/Changesets and open them dynamically.
 
@@ -127,9 +127,9 @@ Users can also click on elements to query its unique value.
 
 ![Generate VS project files](docs/picking.png)
 
-### SimpleiModel
+### Manual-iModel-Placement
 
-This sample demonstrates how to load a specific iModel directly into the scene.
+This sample demonstrates how to place a specific iModel directly into the scene.
 
 For that, the iModelId and ChangesetId has to be set.
 
@@ -147,9 +147,9 @@ The plugin will automatically optimize the model if necessary before loading it.
 You can generate the XCode project files from a terminal using a script provided by the Unreal Engine. This will generate a XCode Workspace which will allow you to build the plugin and run it from the debugger.
 
 1. Open a terminal and run the following command :
-/Users/Shared/Epic\ Games/UE_5.0/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh /path/to/your/iModel.uproject
+/Users/Shared/Epic\ Games/UE_5.0/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh /path/to/your/iTwinExample.uproject
 
-2. Locate the file named iModel.xcworkspace which should have been created in the same location than the .uproject file and open it. This should open XCode.
+2. Locate the file named iTwinExample.xcworkspace which should have been created in the same location than the .uproject file and open it. This should open XCode.
 
 3. Click the run button in XCode, this should build and start the Unreal Engine Editor.
 

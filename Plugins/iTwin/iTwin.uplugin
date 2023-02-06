@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "iTwin",
+	"Description": "iTwin 3DFT Plugin",
+	"Category": "Digital Twins",
+	"CreatedBy": "Bentley Systems",
+	"CreatedByURL": "https://www.bentley.com/",
+	"DocsURL": "https://github.com/iTwin/unreal-engine-3dft-plugin/README.md",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "iTwin",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ProceduralMeshComponent",
+			"Enabled": true
+		}
+	]
+}
