@@ -1,13 +1,7 @@
 # iTwin 3DFT Plugin for Unreal Engine
 
-This repository contains the Unreal Engine 3DFT plugin for viewing iModels streamed directly from the iTwin Platform.
+This repository contains the iTwin 3DFT Plugin for Unreal Engine for viewing iModels streamed directly from the iTwin Platform.
 It also includes sample projects that demonstrate how to use the plugin and how to connect to various APIs of the iTwin platform.
-
-## License
-
-This repository is licensed under an [Apache license](./LICENSE.md), except for the iTwin 3DFT native library which is licensed under a [BENTLEY RIGHT-TO-RUN AUTHORIZATION](./Plugins/iTwin/ThirdParty/iModelDecoder/LICENSE.md) license.
-
-<br/>
 
 ## **Warning: Tech Preview**
 
@@ -17,14 +11,21 @@ You can get more information about the state of the plugin and the iTwin Mesh Ex
 
 </br>
 
+## License
+
+This repository is licensed under an [Apache license](./LICENSE.md), except for the iTwin 3DFT native library which is licensed under a [BENTLEY RIGHT-TO-RUN AUTHORIZATION](./Plugins/iTwin/ThirdParty/iModelDecoder/LICENSE.md) license.
+
+<br/>
+
 # Table of contents
 
 1. [Pre-requisites](#pre-requisites)
 2. [Usage](#usage)
-3. [Samples](#samples)
-4. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
-5. [iModel Actor Properties](#imodel-actor-properties)
-6. [Technology overview](#technology-overview)
+3. [Limitations](#limitations)
+4. [Samples](#samples)
+5. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
+6. [iModel Actor Properties](#imodel-actor-properties)
+7. [Technology overview](#technology-overview)
 
 </br>
 
@@ -112,6 +113,16 @@ The next time any user opens it, it will already have been optimized and will op
 
 ![Generate VS project files](docs/stadium.jpg)
 
+
+<br/>
+
+## Limitations
+
+- Textures are not supported
+- UV channels are not exported
+- Material mapping is reduced to Base Color, Specular, Roughness and Metallic.
+- Reality Data is not directly supported
+- Issues and Saved Views APIs are not supported
 
 <br/>
 
