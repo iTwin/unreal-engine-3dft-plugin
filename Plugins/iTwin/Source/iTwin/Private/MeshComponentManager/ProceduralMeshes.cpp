@@ -41,7 +41,8 @@ void FProceduralMeshes::UpdatePool()
 		MeshComponent->SetMobility(EComponentMobility::Stationary);
 		MeshComponent->bCastDynamicShadow = MeshComponent->CastShadow = false;
 		MeshComponent->SetCastShadow(false);
-		MeshComponent->SetWorldLocation(Actor->GetActorLocation());
+		MeshComponent->AttachToComponent(Actor->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
 		auto EmptySection = MakeShared<FCustomProcMeshSection>();
 
 		EmptySection->Indices.SetNum(3);
