@@ -38,7 +38,7 @@ struct FAuthorizationCredentials
 	static constexpr auto LocalhostPort = 24363;
 	static constexpr auto RedirectUri = TEXT("http://localhost:24363/authorize");
 	static constexpr auto iTwinAppId = TEXT("");
-	static constexpr auto Scope = TEXT("mesh-export:modify imodelaccess:read imodels:read itwins:read mesh-export:read offline_access");
+	static constexpr auto Scope = TEXT("savedviews:read imodels:read mesh-export:read itwins:read mesh-export:modify imodelaccess:read offline_access");
 };
 
 namespace

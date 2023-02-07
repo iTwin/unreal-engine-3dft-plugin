@@ -49,6 +49,11 @@ void FMeshComponentManager::SetOptions(FIMOptions InOptions, FPluginOptions InPl
 	DataRequests->SetUseCache(PluginOptions.bUseDiskCache);
 }
 
+void FMeshComponentManager::OnLoaded(std::function<void(bool)> Callback)
+{
+	OnLoadedCallback = Callback;
+}
+
 void FMeshComponentManager::SetUrl(FString Url)
 {
 	DataRequests->SetBaseUrl(Url);
@@ -62,6 +67,10 @@ void FMeshComponentManager::SetGraphicOptions(const TSharedPtr<FGraphicOptions>&
 void FMeshComponentManager::AddBinaryAssets(const uint8* Data, size_t Size, FString RelativePath)
 {
 	ModelDecoder->AddBinaryAssets(Data, Size, TCHAR_TO_UTF8(*RelativePath));
+	if (RelativePath == "scene_description")
+	{
+		OnLoadedCallback(Size > 0);
+	}
 }
 
 int FMeshComponentManager::GetNumInstances()
@@ -85,7 +94,7 @@ void FMeshComponentManager::Update(float DeltaTime, FVector CamLocation, FVector
 		{
 			DataRequests->AddRequest(Url.c_str(), [this](const uint8* Data, size_t Size, FString RelativePath) {
 				AddBinaryAssets(Data, Size, RelativePath);
-				});
+			});
 		}
 		else
 		{
@@ -226,6 +235,22 @@ void FMeshComponentManager::GetStatusInfo(FString& Status, float& Percentage)
 {
 	auto status = ModelDecoder->GetStatusInfo(Percentage);
 	Status = status.c_str();
+}
+
+namespace
+{
+	template<typename T>
+	auto ToVector(const T& v)
+	{
+		return FVector(v[0], v[1], v[2]);
+	}
+}
+
+ FiModel3DInfo FMeshComponentManager::GetModel3DInfo()
+{
+	auto Info = ModelDecoder->GetiModelInfo();
+
+	return FiModel3DInfo{ ToVector(Info.BoundingBox[0]), ToVector(Info.BoundingBox[1]), ToVector(Info.ModelCenter) };
 }
 
 void FMeshComponentManager::SetPlaybackPosition(int32 Time)

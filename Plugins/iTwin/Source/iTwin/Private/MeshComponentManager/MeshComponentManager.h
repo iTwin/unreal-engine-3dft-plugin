@@ -17,6 +17,8 @@
 #include "GraphicOptions.h"
 #include "Animation/AnimationManager.h"
 
+#include "iModel/iModel3DInfo.h"
+
 struct FPluginOptions
 {
 	float ObjectLoadingSpeed;
@@ -53,9 +55,13 @@ public:
 
 	/* Status */
 	void GetStatusInfo(FString& Status, float& Percentage);
+	
+	/* Info */
+	FiModel3DInfo GetModel3DInfo();
 
 	uint64_t GetElementId(uint32_t ElementIndex);
 
+	void OnLoaded(std::function<void(bool)> Callback);
 
 private:
 	struct FBatchPMComponent
@@ -76,6 +82,8 @@ private:
 	} Materials;
 
 	FIMOptions Options;
+	std::function<void(bool)> OnLoadedCallback;
+
 	FPluginOptions PluginOptions;
 	std::shared_ptr<IModelDecoder> ModelDecoder;
 

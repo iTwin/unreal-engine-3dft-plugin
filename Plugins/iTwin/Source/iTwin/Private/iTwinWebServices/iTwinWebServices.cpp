@@ -78,3 +78,15 @@ void UiTwinWebServices::StartExport(FString iModelId, FString iChangesetId)
 		this->OnStartExportComplete.Broadcast(true, ExportId);
 	});
 }
+
+void UiTwinWebServices::GetAllSavedViews(FString iTwinId, FString iModelId)
+{
+	FITwinServices::GetAllSavedViews(*CancelRequest, iTwinId, iModelId, [this](auto SavedViews) {
+		TArray<FSavedViewInfo> copiedArray;
+		for (const auto& info : SavedViews)
+		{
+			copiedArray.Add({ info.Id, info.DisplayName, info.bShared });
+		}
+		this->OnGetSavedViewsComplete.Broadcast(true, { std::move(copiedArray) });
+	});
+}
