@@ -67,10 +67,6 @@ void FMeshComponentManager::SetGraphicOptions(const TSharedPtr<FGraphicOptions>&
 void FMeshComponentManager::AddBinaryAssets(const uint8* Data, size_t Size, FString RelativePath)
 {
 	ModelDecoder->AddBinaryAssets(Data, Size, TCHAR_TO_UTF8(*RelativePath));
-	if (RelativePath == "scene_description")
-	{
-		OnLoadedCallback(Size > 0);
-	}
 }
 
 int FMeshComponentManager::GetNumInstances()
@@ -94,6 +90,10 @@ void FMeshComponentManager::Update(float DeltaTime, FVector CamLocation, FVector
 		{
 			DataRequests->AddRequest(Url.c_str(), [this](const uint8* Data, size_t Size, FString RelativePath) {
 				AddBinaryAssets(Data, Size, RelativePath);
+				if (RelativePath == "scene_description" && OnLoadedCallback)
+				{
+					FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this, Size](float Delta) -> bool { OnLoadedCallback(Size > 0); return false; }), 0);
+				}
 			});
 		}
 		else

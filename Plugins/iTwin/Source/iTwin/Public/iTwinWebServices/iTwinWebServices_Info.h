@@ -142,6 +142,21 @@ struct FSavedViewInfos
 {
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(BlueprintReadOnly, Category = "SavedView")
+	UPROPERTY(BlueprintReadOnly, Category = "SavedView")
 		TArray<FSavedViewInfo> SavedViews;
+};
+
+USTRUCT(BlueprintType)
+struct FSavedView
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedView")
+		FVector Origin;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedView")
+		FVector Extents;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedView")
+		FRotator Angles;
 };

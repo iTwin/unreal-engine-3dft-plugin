@@ -90,3 +90,10 @@ void UiTwinWebServices::GetAllSavedViews(FString iTwinId, FString iModelId)
 		this->OnGetSavedViewsComplete.Broadcast(true, { std::move(copiedArray) });
 	});
 }
+
+void UiTwinWebServices::GetSavedView(FString SavedViewId)
+{
+	FITwinServices::GetSavedView(*CancelRequest, SavedViewId, [this](auto SavedView) {
+		this->OnGetSavedViewComplete.Broadcast(true, { SavedView.Origin, SavedView.Extents, SavedView.Angles });
+	});
+}
