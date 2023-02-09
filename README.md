@@ -70,7 +70,11 @@ Please, follow the url links to get detailed instructions on how to install the 
     c) Go to [My Apps](https://developer.bentley.com/my-apps/) and [register a new iTwin App](https://developer.bentley.com/tutorials/quickstart-web-and-service-apps/#12-register-your-application):
       - Application type: Desktop / Mobile
       - Redirect URIs: http://localhost:24363/authorize
-      - Scopes: `imodelaccess:read mesh-export:modify itwins:read mesh-export:read imodels:read`
+      - Scopes:
+        ```
+        savedviews:read imodels:read mesh-export:read itwins:read mesh-export:modify imodelaccess:read
+        ```
+        ![Scopes](docs/scopes.png)
 
 2. Configure your iTwin *App ID* in the plugin:
 
@@ -128,15 +132,19 @@ The next time any user opens it, it will already have been optimized and will op
 
 ## Samples
 
+<br/>
+
 ### iModel-Selection-Menu
 
 This sample demonstrates how to list your iTwins/iModels/Changesets and open them dynamically.
 
 ![Generate VS project files](docs/itwin_selector.png)
 
-Users can also click on elements to query its unique value.
+Users can navigate using saved views or click on elements to query its unique value.
 
-![Generate VS project files](docs/picking.png)
+![Generate VS project files](docs/picking2.png)
+
+<br/>
 
 ### Manual-iModel-Placement
 
