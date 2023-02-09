@@ -54,6 +54,21 @@ public:
 		int Index;
 	};
 
+	struct FSavedViewInfo
+	{
+		FString Id;
+		FString DisplayName;
+		bool bShared;
+	};
+
+	struct FSavedView
+	{
+		FVector Origin;
+		FVector Extents;
+		FRotator Angles;
+	};
+
+
 public:
 
 	static void GetiTwins(FCancelRequest& CancelRequest, std::function<void(TArray<FiTwinInfo> iTwins)> Callback);
@@ -76,6 +91,8 @@ public:
 
 	static void CheckAuthorization(FCancelRequest& CancelRequest, std::function<void(bool bSuccess, FString Error)> Callback);
 
+	static void GetAllSavedViews(FCancelRequest& CancelRequest, FString iTwinId, FString iModelId, std::function<void(TArray<FSavedViewInfo> SavedViews)> Callback);
 
+	static void GetSavedView(FCancelRequest& CancelRequest, FString SavedViewId, std::function<void(FSavedView SavedView)> Callback);
 };
 

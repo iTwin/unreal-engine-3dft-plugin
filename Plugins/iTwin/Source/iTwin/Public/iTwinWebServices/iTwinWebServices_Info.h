@@ -121,3 +121,42 @@ struct FChangesetInfos
 	UPROPERTY(BlueprintReadOnly, Category = "ChangesetInfo")
 		TArray<FChangesetInfo> Cahngesets;
 };
+
+USTRUCT(BlueprintType)
+struct FSavedViewInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedViewInfo")
+		FString Id;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedViewInfo")
+		FString DisplayName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedViewInfo")
+		bool bShared;
+};
+
+USTRUCT(BlueprintType)
+struct FSavedViewInfos
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedView")
+		TArray<FSavedViewInfo> SavedViews;
+};
+
+USTRUCT(BlueprintType)
+struct FSavedView
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedView")
+		FVector Origin;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedView")
+		FVector Extents;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SavedView")
+		FRotator Angles;
+};

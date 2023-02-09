@@ -6,6 +6,7 @@
 
 #include "IMOptions.h"
 #include "MeshTile.h"
+#include "IModelInfo.h"
 #include "StaticString.h"
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -38,6 +39,8 @@ public:
 	virtual StaticString GetStatusInfo(float& Percentage) = 0;
 
 	virtual void Release() = 0;
+
+	virtual IModelInfo GetiModelInfo() = 0;
 };
 
 extern "C" IMODELDECODER_API IModelDecoder* CreateDecoder();

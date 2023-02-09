@@ -9,6 +9,7 @@
 
 #include "MaterialOverride.h"
 #include "ElementInfo.h"
+#include "iModel3DInfo.h"
 
 #include "iModel.generated.h"
 
@@ -30,6 +31,7 @@ enum class ELoadingMethod : uint8
 	LM_Manual UMETA(DisplayName = "Manual")
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOniModelLoaded, bool, bSuccess);
 
 UCLASS()
 class ITWIN_API AiModel : public AActor
@@ -37,20 +39,28 @@ class ITWIN_API AiModel : public AActor
 	GENERATED_UCLASS_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, Category = " Model|Animation")
+	UFUNCTION(BlueprintCallable, Category = "iModel|Animation")
 		void GetAnimationInfo(int32& Start, int32& End, int32& Duration, bool& Loaded);
 
-	UFUNCTION(BlueprintCallable, Category = "_iModel|Animation")
+	UFUNCTION(BlueprintCallable, Category = "iModel|Animation")
 		void SetPlaybackPosition(int32 Time);
 
-	UFUNCTION(BlueprintCallable, Category = "&Model|Status")
+	UFUNCTION(BlueprintCallable, Category = "iModel|Status")
 		void GetStatusInfo(FString& Status, float& Percentage);
 
-	UFUNCTION(BlueprintCallable, Category = ".Model|Load")
+	UFUNCTION(BlueprintCallable, Category = "iModel|Info")
+		void GetModel3DInfo(FiModel3DInfo &Info);
+
+	UFUNCTION(BlueprintCallable, Category = "iModel|Load")
 		void LoadModel(FString ExportId);
 
-	UFUNCTION(BlueprintCallable, Category = "-Model|Load")
+	UFUNCTION(BlueprintCallable, Category = "iModel|Load")
 		void Reset();
+
+	UPROPERTY(BlueprintAssignable, Category = "iModel|Load")
+		FOniModelLoaded OniModelLoaded;
+
+
 
 	/* To be implemented in the future
 

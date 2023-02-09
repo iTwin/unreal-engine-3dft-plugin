@@ -18,6 +18,7 @@ struct FiTwinServicesEndPoints
 	static constexpr auto MeshExport = TEXT("mesh-export");
 	static constexpr auto iTwins = TEXT("itwins");
 	static constexpr auto iModels = TEXT("imodels");
+	static constexpr auto SavedViews = TEXT("savedviews");
 };
 
 namespace
@@ -37,6 +38,26 @@ TSharedPtr<FJsonObject> GetChildObject(TSharedPtr<FJsonObject> JsonRoot, FString
 		JsonRoot = JsonChild;
 	}
 	return JsonRoot;
+}
+
+FVector GetFVector(TSharedPtr<FJsonObject> JsonObject, FString name)
+{
+	auto JsonArray = JsonObject->GetArrayField(*name);
+	if (!JsonArray.Num())
+	{
+		return FVector(0, 0, 0);
+	}
+	return FVector(JsonArray[0]->AsNumber(), JsonArray[1]->AsNumber(), JsonArray[2]->AsNumber());
+}
+
+FRotator GetFRotator(TSharedPtr<FJsonObject> JsonObject, FString name)
+{
+	JsonObject = JsonObject->GetObjectField(*name);
+	if (!JsonObject)
+	{
+		return FRotator(0, 0, 0);
+	}
+	return FRotator(JsonObject->GetNumberField("pitch"), JsonObject->GetNumberField("yaw"), JsonObject->GetNumberField("roll"));
 }
 
 FAPIService::FRequestPtr SendGetRequest(const FString& URL, const FString& AuthToken, TArray<FAPIService::FHttpHeader> Headers, TFunction<void(TSharedPtr<FJsonObject>, const FString&)> Callback, FString ApiVersion = "v1")
@@ -367,5 +388,65 @@ void FITwinServices::CheckAuthorization(FCancelRequest& CancelRequest, std::func
 		{
 			Callback(true, "");
 		}
+	});
+}
+
+
+void FITwinServices::GetAllSavedViews(FCancelRequest& CancelRequest, FString iTwinId, FString iModelId, std::function<void(TArray<FSavedViewInfo> SavedViews)> Callback)
+{
+	auto URL = FString::Printf(TEXT("%s/%s/?iTwinId=%s&iModelId=%s"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::SavedViews, *iTwinId, *iModelId);
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, URL](FString AuthToken)
+	{
+		CancelRequest.AutoCancelRequest = SendGetRequest(URL, AuthToken, {}, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+		{
+			if (!ErrorMessage.IsEmpty())
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
+				return;
+			}
+
+			auto JsonExports = JsonRoot->GetArrayField("savedViews");
+			TArray<FSavedViewInfo> SavedViews;
+			for (const auto JsonExport : JsonExports)
+			{
+				const auto JsonObject = JsonExport->AsObject();
+				FSavedViewInfo SavedView = { JsonObject->GetStringField("id"), JsonObject->GetStringField("displayName"), JsonObject->GetBoolField("shared") };
+				SavedViews.Push(SavedView);
+			}
+			Callback(SavedViews);
+		});
+	});
+}
+
+void FITwinServices::GetSavedView(FCancelRequest& CancelRequest, FString SavedViewId, std::function<void(FSavedView SavedView)> Callback)
+{
+	auto URL = FString::Printf(TEXT("%s/%s/%s"), FiTwinServicesEndPoints::Server, FiTwinServicesEndPoints::SavedViews, *SavedViewId);
+	CancelRequest.AutoCancelTicker = FITwinAuthorizationService::Get().GetAuthTokenAsync([Callback, &CancelRequest, URL](FString AuthToken)
+	{
+		CancelRequest.AutoCancelRequest = SendGetRequest(URL, AuthToken, {}, [Callback](TSharedPtr<FJsonObject> JsonRoot, const FString& ErrorMessage)
+		{
+			if (!ErrorMessage.IsEmpty())
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid Reply: %s"), *ErrorMessage);
+				return;
+			}
+
+			auto JsonView = GetChildObject(JsonRoot, "savedView/savedViewData/itwin3dView");
+			if (!JsonView)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid Reply: itwin3dView not defined."));
+				return;
+			}
+
+			auto JsonEye = JsonView->GetObjectField("camera");
+			if (!JsonEye)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid Reply: camera eye not defined."));
+			}
+
+			Callback({ GetFVector(JsonEye, "eye"), GetFVector(JsonView, "extents"), GetFRotator(JsonView, "angles") });
+
+			//Callback({ GetFVector(JsonView, "origin"), GetFVector(JsonView, "extents"), GetFRotator(JsonView, "angles") });
+		});
 	});
 }

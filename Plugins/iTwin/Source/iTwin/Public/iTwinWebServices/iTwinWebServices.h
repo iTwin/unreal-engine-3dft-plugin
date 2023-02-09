@@ -16,6 +16,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGetiModelChangesetsComplete, boo
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGetExportsComplete, bool, bSuccess, FExportInfos, Exports);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGetExportInfoComplete, bool, bSuccess, FExportInfo, Export);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStartExportComplete, bool, bSuccess, FString, ExportId);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGetSavedViewsComplete, bool, bSuccess, FSavedViewInfos, SavedViews);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGetSavedViewComplete, bool, bSuccess, FSavedView, SavedView);
 
 struct FCancelRequest;
 
@@ -48,6 +50,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "iTwin Web Services")
         void StartExport(FString iModelId, FString iChangesetId);
 
+    UFUNCTION(BlueprintCallable, Category = "iTwin Web Services")
+        void GetAllSavedViews(FString iTwinId, FString iModelId);
+
+    UFUNCTION(BlueprintCallable, Category = "iTwin Web Services")
+        void GetSavedView(FString SavedViewId);
+
     UPROPERTY(BlueprintAssignable, Category = "iTwin Web Services")
         FOnAuthorizationChecked OnAuthorizationChecked;
 
@@ -68,6 +76,12 @@ public:
 
     UPROPERTY(BlueprintAssignable, Category = "iTwin Web Services")
         FOnStartExportComplete OnStartExportComplete;
+
+    UPROPERTY(BlueprintAssignable, Category = "iTwin Web Services")
+        FOnGetSavedViewsComplete OnGetSavedViewsComplete;
+
+    UPROPERTY(BlueprintAssignable, Category = "iTwin Web Services")
+        FOnGetSavedViewComplete OnGetSavedViewComplete;
 
 private:
     std::shared_ptr<FCancelRequest> CancelRequest;

@@ -52,6 +52,11 @@ void AiModel::InitializeMeshComponentManager()
 
 	MeshComponentManager->SetMaterials(OpaqueMaterial, TranslucentMaterial);
 
+	MeshComponentManager->OnLoaded([this](bool bSuccess)
+	{
+		this->OniModelLoaded.Broadcast(bSuccess);
+	});
+	
 	MeshComponentManager->SetOptions(
 		{ RequestsInParallel, MaxTrianglesPerBatch, { uint8_t(NearRangeGeometryQuality), uint8_t(FarRangeGeometryQuality)}, IgnoreTranslucency },
 		{ ObjectLoadingSpeed, ShadowDistanceCulling, bUseDiskCache });
@@ -96,7 +101,7 @@ void AiModel::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 	UE_LOG(LogTemp, Warning, TEXT("AiModel::PostEditChangeProperty()"));
 	Super::PostEditChangeProperty(e);
 	FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
-	if (PropertyName == "iModelId" || PropertyName == "ChangesetId")
+	if (PropertyName == "iModelId" || PropertyName == "ChangesetId" || PropertyName == "ExportId")
 	{
 		if (LoadingMethod == ELoadingMethod::LM_Manual && !ExportId.IsEmpty())
 		{
@@ -195,6 +200,12 @@ void AiModel::GetStatusInfo(FString& Status, float& Percentage)
 	MeshComponentManager->GetStatusInfo(Status, Percentage);
 }
 
+void AiModel::GetModel3DInfo(FiModel3DInfo& Info)
+{
+	Info = MeshComponentManager->GetModel3DInfo();
+}
+
+
 FString AiModel::GetElementId(uint32_t ElementIndex)
 {
 	if (!MeshComponentManager)
@@ -251,12 +262,18 @@ void AiModel::LoadiModelChangeset()
 {
 	FITwinServices::AutoExportAndLoad(*CancelRequest, iModelId, ChangesetId, [this](auto ExportId)
 	{
-		if (ExportId  == "")
+		if (ExportId == "")
 		{
 			UE_LOG(LogTemp, Error, TEXT("Processing in progress!"));
 		}
 		else
 		{
+			#if WITH_EDITOR
+			if (IsInEditor())
+			{
+				this->ExportId = ExportId;
+			}
+			#endif
 			return LoadModel(ExportId);
 		}
 	});
