@@ -124,9 +124,11 @@ The next time any user opens it, it will already have been optimized and will op
 
 - Textures are not supported
 - UV channels are not exported
-- Material mapping is reduced to Base Color, Specular, Roughness and Metallic.
-- Reality Data is not directly supported
-- Issues and Saved Views APIs are not supported
+- Material mapping supports Base Color, Specular, Roughness and Metallic
+- Reality Data is not supported
+- Saved views API is minimally supported (only certain camera transitions are supported to demonstrate how to transform iModel coordinates)
+- Issues API is not supported
+- Scheduling animation is not exported.
 
 <br/>
 
