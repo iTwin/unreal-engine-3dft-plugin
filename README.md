@@ -83,14 +83,15 @@ Please, follow the url links to get detailed instructions on how to install the 
     ```
     static constexpr auto iTwinAppId = TEXT("your_app_id_goes_here");
     ```
+    ***Tip**: delete the folders `Plugins\iTwin\Binaries` and `Plugins\iTwin\Intermediate` to "force" UE to recompile the plugin the next time you open the project. If not, your changes may not be reflected.*
 
-2. Open the sample *iTwinExample* project located in the root folder of this repository (UE should automatically compile the plugin).
+3. Open the sample *iTwinExample* project located in the root folder of this repository (UE should automatically compile the plugin).
 
-3. Explore the sample levels *iModel-Selection-Menu* and *Manual-iModel-Placement* to see the plugin in action.
+4. Explore the sample levels *iModel-Selection-Menu* and *Manual-iModel-Placement* to see the plugin in action.
 
-4. To use the plugin in your own projects, simply copy & paste the plugin in your projects and add the actor(s) provided by the plugin to your levels as shown in the sample levels.
+5. To use the plugin in your own projects, simply copy & paste the plugin in your projects and add the actor(s) provided by the plugin to your levels as shown in the sample levels.
 
-5. Configure the actor(s) settings and the level blueprints to suit your needs.
+6. Configure the actor(s) settings and the level blueprints to suit your needs.
 
 <br/>
 
