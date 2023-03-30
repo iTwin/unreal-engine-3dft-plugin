@@ -11,3 +11,4 @@ Plugins/iTwin/Intermediate/*
 iTwinExperience.xcworkspace
 *_BuiltData.uasset
 *.xcuserdatad
+*.sln

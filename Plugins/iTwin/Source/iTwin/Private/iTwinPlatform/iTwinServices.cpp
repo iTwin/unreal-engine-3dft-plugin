@@ -190,6 +190,12 @@ void FITwinServices::GetiTwiniModels(FCancelRequest& CancelRequest, FString iTwi
 				return;
 			}
 
+			if (JsonRoot->HasField("statusCode"))
+			{
+				UE_LOG(LogTemp, Error, TEXT("Error (%i): %s"), JsonRoot->GetIntegerField("statusCode"), *JsonRoot->GetStringField("message"));
+				return;
+			}
+
 			auto JsonExports = JsonRoot->GetArrayField("iModels");
 			TArray<FiModelInfo> iModels;
 			for (const auto JsonExport : JsonExports)
