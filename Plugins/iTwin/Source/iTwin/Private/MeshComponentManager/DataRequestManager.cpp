@@ -82,7 +82,6 @@ void FDataRequestManager::AddRequest(FString RelativeUrl, HttpRequestCallback Ca
         if (!UrlParams.IsEmpty()) {
             RequestUrl += "?";
             RequestUrl += UrlParams;
-            UE_LOG(LogTemp, Error, TEXT("Requesting resource %s"), *RequestUrl);
         }
 		AddHttpRequest(RequestUrl, [this, RelativeUrl, CacheFilePath, Callback](const uint8* Data, size_t Size, FString CompleteUrl) {
 			Callback(Data, Size, RelativeUrl);
