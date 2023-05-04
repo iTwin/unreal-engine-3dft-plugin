@@ -43,7 +43,7 @@ Please, follow the url links to get detailed instructions on how to install the 
 
 4. Open the .uproject file at the root of this repository. Unreal Engine should offer you to build the plugin from source and proceed to load the editor.
 
-5. If Unreal Engine shows errors when loading the .uproject, [compile it manually](#compile-the-project-manually-and-debug-it).
+5. If Unreal Engine shows errors when loading the .uproject, [compile it manually](#compile-the-project-and-debug-it-manually).
 
 ### Windows
 
