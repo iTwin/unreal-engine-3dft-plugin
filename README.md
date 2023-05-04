@@ -23,7 +23,7 @@ This repository is licensed under an [Apache license](./LICENSE.md), except for 
 2. [Usage](#usage)
 3. [Limitations](#limitations)
 4. [Samples](#samples)
-5. [Compile the project manually and debug it](#compile-the-project-manually-and-debug-it)
+5. [Compile the project manually and debug it](#compile-the-project-and-debug-it-manually)
 6. [iModel Actor Properties](#imodel-actor-properties)
 7. [Technology overview](#technology-overview)
 
@@ -55,7 +55,7 @@ Please, follow the url links to get detailed instructions on how to install the 
 
 3. Open the .uproject file at the root of this repository. Unreal Engine should offer you to build the plugin from source and proceed to load the editor.
 
-4. If Unreal Engine shows errors when loading the .uproject, [compile it manually](#compile-the-project-manually-and-debug-it).
+4. If Unreal Engine shows errors when loading the .uproject, [compile it manually](#compile-the-project-and-debug-it-manually).
 
 </br>
 
