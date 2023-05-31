@@ -30,8 +30,8 @@ AiModel::AiModel(const FObjectInitializer& ObjectInitializer) : Super(ObjectInit
 
 	GraphicOptions = MakeShared<FGraphicOptions>();
 	
-	OpaqueMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel/Picking/SolidMaterial-Picking.SolidMaterial-Picking'")));
-	TranslucentMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iModel/Picking/TranslucentMat-Picking.TranslucentMat-Picking'")));
+	OpaqueMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iTwin/Picking/SolidMaterial-Picking.SolidMaterial-Picking'")));
+	TranslucentMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/iTwin/Picking/TranslucentMat-Picking.TranslucentMat-Picking'")));
 	
 	CancelRequest = std::make_shared<FCancelRequest>();
 }
