@@ -76,12 +76,12 @@ Please, follow the url links to get detailed instructions on how to install the 
         ```
         ![Scopes](docs/scopes.png)
 
-2. Configure your iTwin *App ID* in the plugin:
+2. Configure your iTwin **Client ID** in the plugin:
 
     `\Plugins\iTwin\Source\iTwin\Private\iTwinPlatform\iTwinAuthorizationService.cpp`
 
     ```
-    static constexpr auto iTwinAppId = TEXT("your_app_id_goes_here");
+    static constexpr auto iTwinAppId = TEXT("your_client_id_goes_here");
     ```
     ***Tip**: delete the folders `Plugins\iTwin\Binaries` and `Plugins\iTwin\Intermediate` to "force" UE to recompile the plugin the next time you open the project. If not, your changes may not be reflected.*
 
