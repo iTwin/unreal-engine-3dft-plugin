@@ -35,7 +35,7 @@ This repository is licensed under an [Apache license](./LICENSE.md), except for 
 
 Please, follow the url links to get detailed instructions on how to install the described applications.
 
-1. Install [Unreal Engine](https://docs.unrealengine.com/5.0/en-US/installing-unreal-engine/) (we recommend **5.0.3** at the time of writing this documentation)
+1. Install [Unreal Engine](https://docs.unrealengine.com/5.0/en-US/installing-unreal-engine/) (we only support **5.0.3** at the time of writing this documentation)
 
 2. Install [XCode 13.x](https://developer.apple.com/support/xcode/) (Unreal Engine only supports XCode up to version 13.x at the time of writing this documentation, so you cannot install version 14 released during summer 2022.)
 
