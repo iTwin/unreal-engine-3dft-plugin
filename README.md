@@ -67,7 +67,9 @@ Please, follow the url links to get detailed instructions on how to install the 
 
     b) Go to [My Models](https://developer.bentley.com/my-imodels/) and create a new iModel.
 
-    c) Go to [My Apps](https://developer.bentley.com/my-apps/) and [register a new iTwin App](https://developer.bentley.com/tutorials/quickstart-web-and-service-apps/#12-register-your-application):
+    c) Go to [Authorize Native Application](https://developer.bentley.com/tutorials/authorize-native/) and register a new native application.
+
+    d) Go to [My Apps](https://developer.bentley.com/my-apps/) and edit the created application:
       - Application type: Desktop / Mobile
       - Redirect URIs: http://localhost:24363/authorize
       - Scopes:
