@@ -1,13 +1,16 @@
 # iTwin 3DFT Plugin for Unreal Engine
 
-This repository contains the iTwin 3DFT Plugin for Unreal Engine for viewing iModels streamed directly from the iTwin Platform.
-It also includes sample projects that demonstrate how to use the plugin and how to connect to various APIs of the iTwin platform.
+This repository contains the **legacy** iTwin 3DFT Plugin for Unreal Engine for viewing iModels streamed directly from the iTwin Platform. It also includes sample projects that demonstrate how to use the plugin and how to connect to various APIs of the iTwin platform.  
 
-## **Warning: Tech Preview**
+You can get more information about the state of the plugin and the iTwin Mesh Export Service [here](https://developer.bentley.com/apis/mesh-export/operations/get-export/).
 
-This project is a *Technical Preview* and is available for testing purposes only. **Do not use in production**.
+## **Warning: Deprecated Tech Preview, soon to be removed**
 
-You can get more information about the state of the plugin and the iTwin Mesh Export Service [here](https://developer.bentley.com/apis/mesh-export/operations/get-export/).
+This project is a *Technical Preview* and will not be available for download after the end of June. **Do not use in production**.
+
+The 3DFT plugin was Bentley’s first testing environment for streaming iModels from the cloud. We took the experience we collected from this tech demo and created a new plugin with even better technology and performance than the 3DFT technology which will turn into a full product with long-term commitment and constant updates. 
+
+This new plugin is the iTwin for Unreal plugin and it supersedes the 3DFT plugin. You can access the GitHub repository [here](https://github.com/iTwin/itwin-unreal-plugin). 
 
 </br>
 
